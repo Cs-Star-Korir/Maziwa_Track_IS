@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="VNot27gpB6UhAoOjhl0w">
+    <mxGraphModel dx="2396" dy="1193" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="WoL6vZzEi-_5po_7vM6f-1" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="840" width="520" x="100" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="WoL6vZzEi-_5po_7vM6f-1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" value="Figure 1: MaziwaTrack Main Transaction Flowchart" vertex="1">
+          <mxGeometry height="30" width="440" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Start" vertex="1">
+          <mxGeometry height="50" width="160" x="120" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=0;whiteSpace=wrap;html=1;" value="Farmer records delivery" vertex="1">
+          <mxGeometry height="60" width="200" x="100" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="b" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=0;whiteSpace=wrap;html=1;" value="System creates batch number" vertex="1">
+          <mxGeometry height="60" width="200" x="100" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="c" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=0;whiteSpace=wrap;html=1;" value="Grader tests the milk" vertex="1">
+          <mxGeometry height="60" width="200" x="100" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="d" parent="WoL6vZzEi-_5po_7vM6f-1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Passed?" vertex="1">
+          <mxGeometry height="100" width="140" x="130" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="r" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Batch rejected" vertex="1">
+          <mxGeometry height="60" width="160" x="360" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="end1" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="End" vertex="1">
+          <mxGeometry height="50" width="160" x="360" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="f" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=0;whiteSpace=wrap;html=1;" value="Admin approves payment" vertex="1">
+          <mxGeometry height="60" width="200" x="100" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="g" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=0;whiteSpace=wrap;html=1;" value="Farmer receives email and receipt" vertex="1">
+          <mxGeometry height="60" width="200" x="100" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="end2" parent="WoL6vZzEi-_5po_7vM6f-1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="End" vertex="1">
+          <mxGeometry height="50" width="160" x="120" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="start" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="a" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="b" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="c">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="c" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="d">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="d" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontStyle=1;" target="r" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="r" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="end1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="d" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontStyle=1;" target="f" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="f" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="g">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="WoL6vZzEi-_5po_7vM6f-1" source="g" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="end2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

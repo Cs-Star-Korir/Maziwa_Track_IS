@@ -1,0 +1,108 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="tb6UfCFZxWiuCfpV7BBD">
+    <mxGraphModel dx="1704" dy="992" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" value="Figure 2: MaziwaTrack Use Case Diagram" vertex="1">
+          <mxGeometry height="30" width="400" x="200" y="5" as="geometry" />
+        </mxCell>
+        <mxCell id="sys" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;fillColor=light-dark(transparent,#7EA6E0);" value="MaziwaTrack" vertex="1">
+          <mxGeometry height="610" width="480" x="160" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="farmer" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontStyle=1;" value="Farmer" vertex="1">
+          <mxGeometry height="60" width="30" x="60" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="grader" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontStyle=1;" value="Grader" vertex="1">
+          <mxGeometry height="60" width="30" x="60" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontStyle=1;" value="Admin" vertex="1">
+          <mxGeometry height="60" width="30" x="710" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="email" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontStyle=1;" value="Email service" vertex="1">
+          <mxGeometry height="60" width="30" x="710" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_reg" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Register" vertex="1">
+          <mxGeometry height="50" width="180" x="190" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rec" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Record milk deposit" vertex="1">
+          <mxGeometry height="50" width="180" x="190" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_batch" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Issue batch number" vertex="1">
+          <mxGeometry height="50" width="180" x="190" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_ver" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Verify quantity and quality" vertex="1">
+          <mxGeometry height="50" width="180" x="190" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_viewb" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View batch information" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_pay" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Approve payment" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rep" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Generate PDF reports" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rcpt" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Print receipts" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_aud" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View audit log" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_mail" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Send payment notification" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_login" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Log in / log out" vertex="1">
+          <mxGeometry height="50" width="180" x="250" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" edge="1" parent="1" source="farmer" style="endArrow=none;html=1;" target="uc_reg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" edge="1" parent="1" source="farmer" style="endArrow=none;html=1;" target="uc_rec">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" edge="1" parent="1" source="farmer" style="endArrow=none;html=1;" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" edge="1" parent="1" source="grader" style="endArrow=none;html=1;" target="uc_ver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" edge="1" parent="1" source="grader" style="endArrow=none;html=1;" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" edge="1" parent="1" source="admin" style="endArrow=none;html=1;" target="uc_viewb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" edge="1" parent="1" source="admin" style="endArrow=none;html=1;" target="uc_pay">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a8" edge="1" parent="1" source="admin" style="endArrow=none;html=1;" target="uc_rep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a9" edge="1" parent="1" source="admin" style="endArrow=none;html=1;" target="uc_rcpt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a10" edge="1" parent="1" source="admin" style="endArrow=none;html=1;" target="uc_aud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a11" edge="1" parent="1" source="admin" style="endArrow=none;html=1;" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a12" edge="1" parent="1" source="email" style="endArrow=none;html=1;" target="uc_mail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i1" edge="1" parent="1" source="uc_rec" style="endArrow=open;dashed=1;html=1;fontSize=11;labelBackgroundColor=#ffffff;" target="uc_batch" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" edge="1" parent="1" source="uc_pay" style="endArrow=open;dashed=1;html=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=orthogonalEdgeStyle;" target="uc_mail" value="«include»">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="185" />
+              <mxPoint x="420" y="510" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
