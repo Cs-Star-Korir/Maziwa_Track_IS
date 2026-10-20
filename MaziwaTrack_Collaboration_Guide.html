@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MaziwaTrack — Team Collaboration Guide</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--surface:#f7f8fa;--border:#e5e7eb;
+    --text:#1f2328;--muted:#57606a;--accent:#3b82d4;
+    --green:#1a7f5a;--green-bg:#e6f4ee;--green-mid:#9fd8be;
+    --blue:#1a5fa5;--blue-bg:#e6f0fb;--blue-mid:#a8ccf0;
+    --amber:#9a5c00;--amber-bg:#fef3e2;--amber-mid:#f9d078;
+    --red:#b91c1c;--radius:10px;--mono:'Courier New',monospace;
+  }
+  body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-size:16px;color:var(--text);background:var(--bg);line-height:1.65}
+  /* ── LAYOUT ── */
+  .shell{display:flex;min-height:100vh}
+  .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .main{flex:1;padding:32px 36px;max-width:980px}
+  /* ── SIDEBAR ── */
+  .logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo-title{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+  .logo-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .nav-group{margin-bottom:4px}
+  .nav-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:0 20px 4px}
+  .nav-btn{display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:8px 20px;font-size:14px;color:var(--muted);border-left:3px solid transparent;transition:all .15s}
+  .nav-btn:hover{background:rgba(59,130,212,.06);color:var(--text)}
+  .nav-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(59,130,212,.07);font-weight:500}
+  /* ── PAGES ── */
+  .page{display:none}.page.active{display:block}
+  /* ── TYPOGRAPHY ── */
+  h1{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px}
+  h2{font-size:18px;font-weight:600;color:var(--text);margin:28px 0 12px}
+  h3{font-size:15px;font-weight:600;color:var(--text);margin:18px 0 8px}
+  .page-desc{font-size:15px;color:var(--muted);margin-bottom:28px;line-height:1.7;border-bottom:1px solid var(--border);padding-bottom:16px}
+  /* ── CARDS ── */
+  .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px}
+  .card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px}
+  /* ── MEMBER CARDS ── */
+  .members{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:20px}
+  .member{border-radius:var(--radius);padding:18px;border:1px solid var(--border)}
+  .m-tony{background:#e8f5ee;border-color:#9fd8be}.m-angelo{background:#e8f0fb;border-color:#a8ccf0}.m-jeremy{background:#fef3e2;border-color:#f9d078}
+  .m-name{font-size:16px;font-weight:700;margin-bottom:2px}
+  .m-tony .m-name{color:#0a4a2f}.m-angelo .m-name{color:#0c3d72}.m-jeremy .m-name{color:#7a4800}
+  .m-id{font-size:12px;opacity:.7;margin-bottom:4px}
+  .m-role{font-size:13px;font-weight:600;margin-bottom:10px;padding:3px 9px;display:inline-block;border-radius:20px}
+  .m-tony .m-role{background:#9fd8be;color:#03301d}.m-angelo .m-role{background:#a8ccf0;color:#052a54}.m-jeremy .m-role{background:#f9d078;color:#4f2d00}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;margin:2px 2px 2px 0;font-weight:500}
+  .m-tony .tag{background:#c5eedb;color:#0a4a2f}.m-angelo .tag{background:#cce0f8;color:#052a54}.m-jeremy .tag{background:#fce5a5;color:#4f2d00}
+  .task-list{list-style:none;margin-top:10px}
+  .task-list li{font-size:13.5px;color:var(--muted);padding:3px 0;padding-left:16px;position:relative;line-height:1.55}
+  .task-list li::before{content:"→";position:absolute;left:0;color:var(--muted)}
+  /* ── GANTT ── */
+  .gantt-wrap{overflow-x:auto;margin-bottom:20px}
+  .gantt{min-width:700px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+  .gantt-head{display:grid;background:var(--surface);border-bottom:1px solid var(--border)}
+  .gantt-row{display:grid;border-bottom:1px solid var(--border);align-items:center}
+  .gantt-row:last-child{border-bottom:none}
+  .gantt-row:hover{background:#fafbfc}
+  .gc-label{padding:8px 12px;font-size:13px;font-weight:500;color:var(--muted);border-right:1px solid var(--border);background:var(--surface)}
+  .gc-week{padding:6px 4px;font-size:11px;color:var(--muted);text-align:center;border-right:1px solid var(--border)}
+  .gc-week:last-child{border-right:none}
+  .gc-task{padding:7px 12px;font-size:13px;color:var(--text);border-right:1px solid var(--border)}
+  .gc-bar-cell{padding:4px;border-right:1px solid var(--border)}
+  .gc-bar-cell:last-child{border-right:none}
+  .bar{height:20px;border-radius:4px;display:flex;align-items:center;padding-left:5px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+  .bar-tony{background:#1a7f5a}.bar-angelo{background:#1a5fa5}.bar-jeremy{background:#c07a00}.bar-all{background:#6b7280}
+  /* columns: label=200px, 10 weeks each 56px */
+  .gantt-cols{grid-template-columns:200px repeat(10,1fr)}
+  /* ── WORKPLAN TABLE ── */
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px}
+  th{background:var(--surface);padding:10px 13px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border)}
+  td{padding:10px 13px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+  .bd-tony{background:#e8f5ee;color:#0a4a2f}.bd-angelo{background:#e8f0fb;color:#0c3d72}.bd-jeremy{background:#fef3e2;color:#7a4800}.bd-all{background:#f0f0f0;color:#444}
+  .bd-d1{background:#ede9ff;color:#3b2d8a}.bd-d2{background:#fff0e0;color:#7a3d00}.bd-d3{background:#e0f0ff;color:#003f82}.bd-d4{background:#fde8e8;color:#821414}
+  /* ── SETUP STEPS ── */
+  .step-group{margin-bottom:24px}
+  .step{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+  .step:last-child{border-bottom:none}
+  .step-num{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+  .step-body h4{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .step-body p{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:6px}
+  pre,code{font-family:var(--mono);font-size:13px}
+  pre{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;line-height:1.8;color:var(--text);margin:6px 0}
+  code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:12.5px;color:var(--text)}
+  .tip{background:#fffbe6;border-left:3px solid #f5c400;border-radius:0 6px 6px 0;padding:9px 14px;margin:10px 0;font-size:13.5px;color:#6b4c00}
+  .warn{background:#fef2f2;border-left:3px solid #f87171;border-radius:0 6px 6px 0;padding:9px 14px;margin:10px 0;font-size:13.5px;color:#7a1f1f}
+  .note{background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 6px 6px 0;padding:9px 14px;margin:10px 0;font-size:13.5px;color:#1e3a6e}
+  /* ── RULES GRID ── */
+  .rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:20px}
+  .rule-card{border-radius:var(--radius);padding:14px 16px;border-left:4px solid var(--border)}
+  .rule-green{background:#f0faf5;border-color:var(--green)}.rule-blue{background:#f0f6ff;border-color:var(--blue)}.rule-amber{background:#fffbf0;border-color:#d97706}
+  .rule-card h4{font-size:13.5px;font-weight:600;margin-bottom:5px}
+  .rule-green h4{color:var(--green)}.rule-blue h4{color:var(--blue)}.rule-amber h4{color:#7a4800}
+  .rule-card p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  /* ── CHECKLIST ── */
+  .checklist{list-style:none}
+  .checklist li{font-size:14px;padding:5px 0;padding-left:22px;position:relative;color:var(--muted);border-bottom:1px solid var(--border)}
+  .checklist li:last-child{border-bottom:none}
+  .checklist li::before{content:"☐";position:absolute;left:0;color:var(--accent)}
+  /* ── PROGRESS BAR ── */
+  .phase-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .phase-label{font-size:13.5px;font-weight:600;color:var(--text)}
+  .phase-weeks{font-size:12px;color:var(--muted)}
+  .phase-bar-bg{background:var(--border);border-radius:4px;height:8px;margin-bottom:14px}
+  .phase-bar{height:8px;border-radius:4px}
+  /* ── FOOTER ── */
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);text-align:center;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-title">🥛 MaziwaTrack</div>
+    <div class="logo-sub">Team Collaboration Guide</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Overview</div>
+    <button class="nav-btn active" onclick="goto('overview')">📋 Project Overview</button>
+    <button class="nav-btn" onclick="goto('team')">👥 Team & Roles</button>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Planning</div>
+    <button class="nav-btn" onclick="goto('gantt')">📊 Gantt Chart</button>
+    <button class="nav-btn" onclick="goto('workplan')">📝 Work Plan</button>
+    <button class="nav-btn" onclick="goto('deliverables')">🎯 Deliverables</button>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Setup</div>
+    <button class="nav-btn" onclick="goto('setup')">⚙️ Initial Setup</button>
+    <button class="nav-btn" onclick="goto('workflow')">🔀 Git Workflow</button>
+    <button class="nav-btn" onclick="goto('stack')">🛠 Tech Stack</button>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Guidelines</div>
+    <button class="nav-btn" onclick="goto('rules')">📐 Golden Rules</button>
+    <button class="nav-btn" onclick="goto('comms')">💬 Communication</button>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<section id="overview" class="page active">
+  <h1>MaziwaTrack</h1>
+  <p class="page-desc">
+    A web-based information system for dairy cooperatives in Kenya that streamlines milk delivery tracking, quality verification, and payment processing — giving farmers transparent, auditable records of every litre they deliver.
+  </p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px">
+    <div class="card" style="border-left:4px solid var(--green)">
+      <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Team Size</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text)">3</div>
+      <div style="font-size:12px;color:var(--muted)">Software Engineering Students</div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <div style="font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Timeline</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text)">5</div>
+      <div style="font-size:12px;color:var(--muted)">Weeks · Ends 25 Nov 2025</div>
+    </div>
+    <div class="card" style="border-left:4px solid #d97706">
+      <div style="font-size:11px;font-weight:600;color:#d97706;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Deliverables</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text)">4</div>
+      <div style="font-size:12px;color:var(--muted)">Graded Submissions</div>
+    </div>
+    <div class="card" style="border-left:4px solid #9333ea">
+      <div style="font-size:11px;font-weight:600;color:#9333ea;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">User Roles</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text)">3</div>
+      <div style="font-size:12px;color:var(--muted)">Farmer · Grader · Admin</div>
+    </div>
+  </div>
+
+  <h2>The Problem We Solve</h2>
+  <div class="rules-grid">
+    <div class="card">
+      <div class="card-title">💸 Late & Disputed Payments</div>
+      <p style="font-size:12px;color:var(--muted)">Farmers wait months for payment with no independent record to dispute. Cooperatives keep records only in a clerk's book — no farmer-side copy.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🥛 290M Litres Wasted (2023)</div>
+      <p style="font-size:12px;color:var(--muted)">KSh 14.7 billion lost because cooperatives only learn of surplus after milk arrives. No forecasting or daily trend data.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🏦 No Credit Access</div>
+      <p style="font-size:12px;color:var(--muted)">Smallholder farmers can't get loans — daily deliveries prove income but no accepted documentation exists for lenders.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Legal Compliance (May 2026)</div>
+      <p style="font-size:12px;color:var(--muted)">Agriculture CS Mutahi Kagwe mandated per-farmer digital traceability records. Paper-based cooperatives face legal exposure.</p>
+    </div>
+  </div>
+
+  <h2>Core Transaction Flow</h2>
+  <div class="card">
+    <div style="display:flex;flex-wrap:wrap;gap:0;align-items:center">
+      <div style="text-align:center;padding:10px 14px;flex:1;min-width:100px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#e8f5ee;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:18px">👨‍🌾</div>
+        <div style="font-size:11px;font-weight:600;color:var(--green)">FARMER</div>
+        <div style="font-size:11px;color:var(--muted)">Declares litres</div>
+      </div>
+      <div style="color:var(--border);font-size:20px;padding:0 4px">→</div>
+      <div style="text-align:center;padding:10px 14px;flex:1;min-width:100px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#e8f0fb;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:18px">🔬</div>
+        <div style="font-size:11px;font-weight:600;color:var(--blue)">GRADER</div>
+        <div style="font-size:11px;color:var(--muted)">Tests & measures</div>
+      </div>
+      <div style="color:var(--border);font-size:20px;padding:0 4px">→</div>
+      <div style="text-align:center;padding:10px 14px;flex:1;min-width:100px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#fef3e2;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:18px">✅</div>
+        <div style="font-size:11px;font-weight:600;color:var(--amber)">ADMIN</div>
+        <div style="font-size:11px;color:var(--muted)">Approves payment</div>
+      </div>
+      <div style="color:var(--border);font-size:20px;padding:0 4px">→</div>
+      <div style="text-align:center;padding:10px 14px;flex:1;min-width:100px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:18px">📧</div>
+        <div style="font-size:11px;font-weight:600;color:#555">NOTIFY</div>
+        <div style="font-size:11px;color:var(--muted)">Email + receipt</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Technology Stack (Confirmed)</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+    <div class="card" style="text-align:center;padding:16px 10px">
+      <div style="font-size:22px;margin-bottom:6px">⚛️</div>
+      <div style="font-size:13px;font-weight:600">React</div>
+      <div style="font-size:11px;color:var(--muted)">+ React Router</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 10px">
+      <div style="font-size:22px;margin-bottom:6px">🟢</div>
+      <div style="font-size:13px;font-weight:600">Node.js</div>
+      <div style="font-size:11px;color:var(--muted)">Express.js API</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 10px">
+      <div style="font-size:22px;margin-bottom:6px">🐘</div>
+      <div style="font-size:13px;font-weight:600">PostgreSQL</div>
+      <div style="font-size:11px;color:var(--muted)">with `pg` driver</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 10px">
+      <div style="font-size:22px;margin-bottom:6px">▲</div>
+      <div style="font-size:13px;font-weight:600">Vercel + Render</div>
+      <div style="font-size:11px;color:var(--muted)">Hosting</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 10px">
+      <div style="font-size:22px;margin-bottom:6px">📄</div>
+      <div style="font-size:13px;font-weight:600">PDFKit</div>
+      <div style="font-size:11px;color:var(--muted)">Report generation</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 10px">
+      <div style="font-size:22px;margin-bottom:6px">📨</div>
+      <div style="font-size:13px;font-weight:600">Nodemailer</div>
+      <div style="font-size:11px;color:var(--muted)">→ Resend (prod)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ TEAM ═══════════════════ -->
+<section id="team" class="page">
+  <h1>Team & Responsibilities</h1>
+  <p class="page-desc">Three members, three complementary roles. Every feature is owned by one person — no ambiguity about who does what.</p>
+
+  <div class="members">
+    <div class="member m-tony">
+      <div class="m-name">Korir Tonybrian</div>
+      <div class="m-id">ID: 180883</div>
+      <div class="m-role">🔧 Backend Developer</div>
+      <span class="tag">Express.js API</span>
+      <span class="tag">PostgreSQL</span>
+      <span class="tag">Auth &amp; JWT</span>
+      <span class="tag">bcrypt</span>
+      <span class="tag">PDFKit Reports</span>
+      <span class="tag">Email (Nodemailer)</span>
+      <span class="tag">Audit Logs</span>
+      <span class="tag">Deployment (Render)</span>
+      <ul class="task-list" style="margin-top:12px">
+        <li>Design and create the PostgreSQL schema (4 tables)</li>
+        <li>Build all Express API routes: auth, farmer, grader, admin</li>
+        <li>Implement bcrypt password hashing + JWT/session auth</li>
+        <li>Write role-based middleware for route protection</li>
+        <li>Implement payment approval logic (litres × price/litre)</li>
+        <li>Set up Nodemailer (Gmail dev) → Resend (production)</li>
+        <li>Build PDF report generation with PDFKit (logo, date, filters)</li>
+        <li>Implement audit_logs table writes on every action</li>
+        <li>Deploy API to Render + configure environment variables</li>
+        <li>Write <code>schema.sql</code> and <code>seed.sql</code> in repo</li>
+        <li>Write backend sections of the User Manual</li>
+      </ul>
+    </div>
+
+    <div class="member m-angelo">
+      <div class="m-name">Morara Angelo</div>
+      <div class="m-id">ID: 220011</div>
+      <div class="m-role">🎨 Frontend Developer</div>
+      <span class="tag">React</span>
+      <span class="tag">React Router</span>
+      <span class="tag">Bootstrap</span>
+      <span class="tag">Font Awesome</span>
+      <span class="tag">Form Validation</span>
+      <span class="tag">Farmer Portal</span>
+      <span class="tag">Grader Portal</span>
+      <span class="tag">Admin Portal</span>
+      <span class="tag">Vercel Deploy</span>
+      <ul class="task-list" style="margin-top:12px">
+        <li>Design and build all UI wireframes (Balsamiq / Figma)</li>
+        <li>Bootstrap/CSS design system — colour palette, typography</li>
+        <li>Login + Registration pages with client-side validation</li>
+        <li>Farmer portal: declare delivery, view batch status, history</li>
+        <li>Grader portal: view pending batches, enter test results</li>
+        <li>Admin portal: approve payments, view reports &amp; audit log</li>
+        <li>React Router: protected routes per role</li>
+        <li>Error messages, help page, loading states</li>
+        <li>English/Swahili language toggle</li>
+        <li>Deploy React app to Vercel</li>
+        <li>Write UI/UX sections of User Manual + screenshots</li>
+      </ul>
+    </div>
+
+    <div class="member m-jeremy">
+      <div class="m-name">Ng'wono Jeremy</div>
+      <div class="m-id">ID: 212323</div>
+      <div class="m-role">🧪 Testing, Integration &amp; Docs Lead</div>
+      <span class="tag">System Diagrams</span>
+      <span class="tag">Test Cases</span>
+      <span class="tag">Integration</span>
+      <span class="tag">Documentation</span>
+      <span class="tag">User Manual</span>
+      <span class="tag">Deliverables</span>
+      <span class="tag">PR Reviews</span>
+      <ul class="task-list" style="margin-top:12px">
+        <li>Draw all required diagrams: Flowchart, Use Case, Class, ER</li>
+        <li>Create DB schema diagram + wireframe mockups</li>
+        <li>Write all test cases for FR1–FR5 (functional requirements)</li>
+        <li>Execute integration tests: frontend ↔ backend ↔ database</li>
+        <li>Review all pull requests before merge to <code>main</code></li>
+        <li>Compile and submit each Deliverable document on time</li>
+        <li>Maintain project documentation and meeting notes</li>
+        <li>Lead final User Acceptance Testing (UAT)</li>
+        <li>Coordinate and drive final presentation preparation</li>
+        <li>Maintain the audit log verification tests</li>
+        <li>Assemble and format the complete User Manual</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Shared Responsibilities (All Three)</h2>
+  <div class="card">
+    <ul class="task-list">
+      <li>Attend and participate in weekly sync meetings</li>
+      <li>Raise blockers in the group WhatsApp/chat within 24 hours of discovering them</li>
+      <li>Open a pull request for every feature; do not push directly to <code>main</code></li>
+      <li>Comment all non-obvious code; follow naming conventions</li>
+      <li>Prepare and present your section during the final presentation</li>
+      <li>Update the shared project status tracker after completing each task</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════ GANTT ═══════════════════ -->
+<section id="gantt" class="page">
+  <h1>Gantt Chart</h1>
+  <p class="page-desc">
+    <strong>Today is 20 October 2025. The semester ends 25 November 2025.</strong> D1 &amp; D2 are due <strong>tomorrow, 21 Oct</strong>. D3 (mid-semester marking) follows around Week 3, and D4 (final presentation) is on or before 25 Nov. Five weeks total — plan carefully.
+  </p>
+
+  <div class="warn" style="margin-bottom:18px">
+    ⚠️ <strong>URGENT:</strong> Deliverables 1 &amp; 2 are due <strong>tomorrow 21 Oct</strong>. Finalise and submit D1 + D2 today / first thing tomorrow morning.
+  </div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:13px">
+    <span><span style="display:inline-block;width:14px;height:14px;background:#1a7f5a;border-radius:3px;vertical-align:middle;margin-right:5px"></span>Tonybrian (Backend)</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:#1a5fa5;border-radius:3px;vertical-align:middle;margin-right:5px"></span>Angelo (Frontend)</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:#c07a00;border-radius:3px;vertical-align:middle;margin-right:5px"></span>Jeremy (Testing/Docs)</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:#6b7280;border-radius:3px;vertical-align:middle;margin-right:5px"></span>All Team</span>
+  </div>
+
+  <div class="gantt-wrap">
+  <div class="gantt">
+    <!-- Header: 5 weeks -->
+    <div class="gantt-head gantt-cols">
+      <div class="gc-label" style="font-size:12px;font-weight:600;color:var(--muted);padding:8px 12px">Task</div>
+      <div class="gc-week" style="background:#fef9ec;font-weight:700;color:#7a4800">W1<br><span style="font-size:9px;font-weight:400">20–26 Oct</span></div>
+      <div class="gc-week" style="background:#fef2f2;font-weight:700;color:#b91c1c">W1 21 Oct<br><span style="font-size:9px;font-weight:400">◆ D1 &amp; D2</span></div>
+      <div class="gc-week">W2<br><span style="font-size:9px">27 Oct–2 Nov</span></div>
+      <div class="gc-week">W3<br><span style="font-size:9px">3–9 Nov</span></div>
+      <div class="gc-week">W3<br><span style="font-size:9px">◆ D3 Demo</span></div>
+      <div class="gc-week">W4<br><span style="font-size:9px">10–16 Nov</span></div>
+      <div class="gc-week">W4<br><span style="font-size:9px">Polish &amp; Fix</span></div>
+      <div class="gc-week">W5<br><span style="font-size:9px">17–23 Nov</span></div>
+      <div class="gc-week">W5<br><span style="font-size:9px">Deploy</span></div>
+      <div class="gc-week" style="background:#fef2f2;font-weight:700;color:#b91c1c">25 Nov<br><span style="font-size:9px;font-weight:400">◆ D4 FINAL</span></div>
+    </div>
+
+    <!-- D1 + D2 row -->
+    <div class="gantt-row gantt-cols" style="background:#fffbe6">
+      <div class="gc-task" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#7a4800">◆ D1 &amp; D2 — Due 21 Oct</div>
+      <div class="gc-bar-cell" style="grid-column:2/span 2"><div class="bar" style="background:#c07a00;width:100%">◆ Submit D1 + D2 (Jeremy)</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Repo + scaffold (Tonybrian, W1) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Repo setup + scaffold (Tonybrian)</div>
+      <div class="gc-bar-cell" style="grid-column:2/span 1"><div class="bar bar-tony" style="width:100%">Create repo TODAY</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Requirements doc (Jeremy, W1) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Requirements doc (Jeremy)</div>
+      <div class="gc-bar-cell" style="grid-column:2/span 2"><div class="bar bar-jeremy" style="width:100%">Finalise + submit D1</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- System diagrams (Jeremy, W1) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">System diagrams (Jeremy)</div>
+      <div class="gc-bar-cell" style="grid-column:2/span 2"><div class="bar bar-jeremy" style="width:100%">Flowchart, UCD, Class, ER</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- UI wireframes (Angelo, W1) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">UI wireframes (Angelo)</div>
+      <div class="gc-bar-cell" style="grid-column:2/span 2"><div class="bar bar-angelo" style="width:100%">Login, Farmer, Grader, Admin</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- DB schema (Tonybrian, W1–W2) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">DB schema + schema.sql (Tonybrian)</div>
+      <div class="gc-bar-cell" style="grid-column:2/span 2"><div class="bar bar-tony" style="width:100%">4 tables + seed.sql</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Development sprint label -->
+    <div class="gantt-row gantt-cols" style="background:#f9fafb">
+      <div class="gc-task" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)">Development Sprint (W2–W4)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:4/span 6"><div class="bar" style="background:#9ca3af;width:100%">27 Oct → 16 Nov — core build</div></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Auth API + DB (Tonybrian, W2) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Auth API + DB tables (Tonybrian)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:4/span 2"><div class="bar bar-tony" style="width:100%">Auth + DB setup</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Payment + PDF + Email (Tonybrian, W3) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Payment + PDF + Email (Tonybrian)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:6/span 2"><div class="bar bar-tony" style="width:100%">Payments + PDFKit + Email</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Login + Farmer UI (Angelo, W2) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Login + Farmer UI (Angelo)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:4/span 2"><div class="bar bar-angelo" style="width:100%">Login + Farmer portal</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Grader + Admin UI (Angelo, W3) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Grader + Admin UI (Angelo)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:6/span 2"><div class="bar bar-angelo" style="width:100%">Grader + Admin portals</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Test cases (Jeremy, W2–W3) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Test cases writing (Jeremy)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:4/span 3"><div class="bar bar-jeremy" style="width:100%">FR1–FR5 test cases</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- D3 Mid-Semester Demo (W3) -->
+    <div class="gantt-row gantt-cols" style="background:#f0f6ff">
+      <div class="gc-task" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#1a5fa5">◆ D3 — Mid-Semester Demo</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:6/span 1"><div class="bar" style="background:#1a5fa5;width:100%">◆ D3 Live Demo</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- 2FA + Audit logs (Tonybrian, W4) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">2FA + Audit logs (Tonybrian)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:7/span 2"><div class="bar bar-tony" style="width:100%">2FA + audit_logs</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Polish + Help page (Angelo, W4) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Polish, Help page, Lang toggle (Angelo)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:7/span 2"><div class="bar bar-angelo" style="width:100%">UX polish + Swahili toggle</div></div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Integration + UAT (Jeremy, W4–W5) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Integration testing + UAT (Jeremy)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:8/span 2"><div class="bar bar-jeremy" style="width:100%">Integration + UAT</div></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- Deployment (Tonybrian, W5) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">Deployment — Vercel + Render (Tonybrian)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:9/span 2"><div class="bar bar-tony" style="width:100%">Deploy + Resend prod</div></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- User Manual (Jeremy, W5) -->
+    <div class="gantt-row gantt-cols">
+      <div class="gc-task">User Manual + docs (Jeremy)</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:9/span 2"><div class="bar bar-jeremy" style="width:100%">User Manual PDF</div></div>
+      <div class="gc-bar-cell"></div>
+    </div>
+
+    <!-- D4 Final -->
+    <div class="gantt-row gantt-cols" style="background:#fef2f2">
+      <div class="gc-task" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#b91c1c">◆ D4 — Final Presentation</div>
+      <div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div><div class="gc-bar-cell"></div>
+      <div class="gc-bar-cell" style="grid-column:11/span 1"><div class="bar" style="background:#b91c1c;width:100%">◆ 25 Nov</div></div>
+    </div>
+  </div>
+  </div>
+
+  <h2>Phase Summary</h2>
+  <div>
+    <div class="phase-header"><span class="phase-label">Phase 1 — Planning, Requirements &amp; Design (W1: 20–26 Oct) ◆ D1 &amp; D2</span><span class="phase-weeks" style="color:#b91c1c;font-weight:600">⚡ D1+D2 due 21 Oct</span></div>
+    <div class="phase-bar-bg"><div class="phase-bar" style="width:20%;background:#c07a00"></div></div>
+
+    <div class="phase-header"><span class="phase-label">Phase 2 — Core Development Sprint (W2–W3: 27 Oct – 9 Nov)</span><span class="phase-weeks">2 weeks</span></div>
+    <div class="phase-bar-bg"><div class="phase-bar" style="width:40%;background:#1a7f5a"></div></div>
+
+    <div class="phase-header"><span class="phase-label">Phase 3 — Mid-Semester Demo (W3: ~6–9 Nov) ◆ D3</span><span class="phase-weeks">Week 3</span></div>
+    <div class="phase-bar-bg"><div class="phase-bar" style="width:20%;background:#1a5fa5"></div></div>
+
+    <div class="phase-header"><span class="phase-label">Phase 4 — Polish, Security &amp; Testing (W4: 10–16 Nov)</span><span class="phase-weeks">1 week</span></div>
+    <div class="phase-bar-bg"><div class="phase-bar" style="width:20%;background:#c07a00"></div></div>
+
+    <div class="phase-header"><span class="phase-label">Phase 5 — Deployment, Final Prep &amp; Presentation (W5: 17–25 Nov) ◆ D4</span><span class="phase-weeks" style="color:#b91c1c;font-weight:600">25 Nov</span></div>
+    <div class="phase-bar-bg"><div class="phase-bar" style="width:10%;background:#b91c1c"></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════ WORKPLAN ═══════════════════ -->
+<section id="workplan" class="page">
+  <h1>Detailed Work Plan</h1>
+  <p class="page-desc">Week-by-week breakdown of every task, who owns it, and which deliverable it contributes to. Today is 20 Oct — D1 &amp; D2 are due tomorrow 21 Oct. Semester ends 25 Nov.</p>
+
+  <h2>Week 1 · 20–26 Oct · Planning, Requirements &amp; Design ⚡ D1 &amp; D2 due 21 Oct</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Owner</th><th>Output</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>Create GitHub repo, set up branch protection on <code>main</code></td><td><span class="badge bd-all">All</span></td><td>Working repo with <code>main</code> protected</td><td><span class="badge bd-d1">D1</span></td></tr>
+      <tr><td>Bootstrap React app (<code>client/</code>) + Express skeleton (<code>server/</code>)</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Runnable "hello world" full-stack</td><td><span class="badge bd-d1">D1</span></td></tr>
+      <tr><td>Set up <code>.env</code> template, <code>.gitignore</code>, ESLint config</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Dev environment standard</td><td><span class="badge bd-d1">D1</span></td></tr>
+      <tr><td>Draft functional &amp; non-functional requirements (FR1–FR5, NFR1–NFR3)</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Requirements doc</td><td><span class="badge bd-d1">D1</span></td></tr>
+      <tr><td>Write project brief — system description + group member task assignments</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>D1 submission document</td><td><span class="badge bd-d1">D1</span></td></tr>
+      <tr><td>Confirm tech stack decisions with lecturer (PDF reports, PostgreSQL)</td><td><span class="badge bd-all">All</span></td><td>Written lecturer sign-off</td><td><span class="badge bd-d1">D1</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Week 2 · 27 Oct–2 Nov · Design Completion &amp; Dev Kickoff</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Owner</th><th>Output</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>Draw Flowchart (main transaction: declare → test → approve → email)</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Flowchart diagram</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Draw Use Case Diagram (3 actors: Farmer, Grader, Admin)</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>UCD diagram</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Draw Class Diagram &amp; ER Diagram</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Class + ER diagrams</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Design PostgreSQL schema: users, deliveries, payments, audit_logs</td><td><span class="badge bd-tony">Tonybrian</span></td><td><code>schema.sql</code> + ER diagram</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Create seed data file <code>seed.sql</code> with 3 test users per role</td><td><span class="badge bd-tony">Tonybrian</span></td><td><code>seed.sql</code> committed to repo</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Design wireframes: Login, Farmer portal, Grader portal, Admin portal</td><td><span class="badge bd-angelo">Angelo</span></td><td>Wireframe mockups (Balsamiq / Figma)</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Design UI component system: colours, buttons, forms, tables</td><td><span class="badge bd-angelo">Angelo</span></td><td>CSS design tokens / Bootstrap customisation</td><td><span class="badge bd-d2">D2</span></td></tr>
+      <tr><td>Compile &amp; submit Deliverable 2</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>D2 document submitted</td><td><span class="badge bd-d2">D2</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Weeks 2–3 · 27 Oct–9 Nov · Core Development</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Owner</th><th>Output</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>Create PostgreSQL database locally, run <code>schema.sql</code></td><td><span class="badge bd-tony">Tonybrian</span></td><td>DB running locally with all 4 tables</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build <code>POST /auth/register</code> and <code>POST /auth/login</code> routes + bcrypt + JWT</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Working auth API</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build <code>POST /farmer/delivery</code> — create delivery, return batch number</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Delivery creation endpoint</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build <code>PUT /grader/test/:batchId</code> — record test result, flag mismatches</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Grader test endpoint</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build login + registration React pages with form validation</td><td><span class="badge bd-angelo">Angelo</span></td><td>Working login UI connected to API</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build Farmer portal: submit delivery form, batch list, status badges</td><td><span class="badge bd-angelo">Angelo</span></td><td>Farmer dashboard</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build Grader portal: pending batches list, test result entry form</td><td><span class="badge bd-angelo">Angelo</span></td><td>Grader dashboard</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Write test cases for FR1 (accounts) and FR2 (record delivery)</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Test case document (FR1, FR2)</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Execute first integration test: farmer registration → login → delivery</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Integration test result log</td><td><span class="badge bd-d3">D3</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Week 3 · ~6–9 Nov · Mid-Semester Demo ◆ D3</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Owner</th><th>Output</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>Build <code>POST /admin/approve/:paymentId</code> — calculate payment, update status</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Payment approval endpoint</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Integrate Nodemailer — send payment confirmation email to farmer</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Email sends on approval</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Build Admin portal: payment approval list, approve button</td><td><span class="badge bd-angelo">Angelo</span></td><td>Admin dashboard (MVP)</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>React Router protected routes — redirect to login if unauthenticated</td><td><span class="badge bd-angelo">Angelo</span></td><td>Route guards working</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Front-end ↔ back-end full flow demo: Farmer → Grader → Admin → Email</td><td><span class="badge bd-all">All</span></td><td>Live demo-ready system for D3</td><td><span class="badge bd-d3">D3</span></td></tr>
+      <tr><td>Fix all blockers found during D3 demo</td><td><span class="badge bd-all">All</span></td><td>Clean codebase post-demo</td><td><span class="badge bd-d3">D3</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Week 4 · 10–16 Nov · Polish, Security &amp; Testing</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Owner</th><th>Output</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>PDF report generation with PDFKit (logo, date, filters)</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Downloadable PDF reports</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Audit log writes on every DB mutation (user, batch, payment actions)</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Populated audit_logs table</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Implement 2FA via email OTP on login</td><td><span class="badge bd-tony">Tonybrian</span></td><td>2FA working</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Help page, Swahili/English toggle, all error messages</td><td><span class="badge bd-angelo">Angelo</span></td><td>Polished user experience</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Reports UI, receipt print view, audit log table in Admin portal</td><td><span class="badge bd-angelo">Angelo</span></td><td>Complete Admin section</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Full integration test suite — FR1 through FR5</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Test results document (pass/fail log)</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>User Acceptance Testing (UAT) with seed data</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>UAT sign-off checklist</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Write User Manual (all sections: install, usage per role, troubleshooting)</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>User Manual PDF</td><td><span class="badge bd-d4">D4</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Week 5 · 17–25 Nov · Deployment &amp; Final Presentation ◆ D4 due 25 Nov</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Owner</th><th>Output</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>Deploy React app to Vercel (set env vars for API URL)</td><td><span class="badge bd-angelo">Angelo</span></td><td>Live frontend URL</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Deploy Express API to Render (set env vars, PostgreSQL URL)</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Live API URL</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Switch email from Nodemailer/Gmail to Resend (production)</td><td><span class="badge bd-tony">Tonybrian</span></td><td>Emails work in production</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Smoke-test full live system end-to-end</td><td><span class="badge bd-jeremy">Jeremy</span></td><td>Production verification checklist</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Final presentation preparation (slides, demo script, time rehearsal)</td><td><span class="badge bd-all">All</span></td><td>Presentation slides</td><td><span class="badge bd-d4">D4</span></td></tr>
+      <tr><td>Final presentation &amp; marking</td><td><span class="badge bd-all">All</span></td><td>◆ D4 Submission</td><td><span class="badge bd-d4">D4</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════ DELIVERABLES ═══════════════════ -->
+<section id="deliverables" class="page">
+  <h1>Deliverables</h1>
+  <p class="page-desc">Four graded submissions covering the full software development lifecycle. Jeremy leads compilation; everyone contributes their section.</p>
+
+  <div class="card" style="border-left:4px solid #7c3aed;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="card-title" style="font-size:15px">◆ Deliverable 1 — Project Title &amp; Requirements Analysis</div>
+        <div style="font-size:12px;color:var(--muted)">Phase: Planning</div>
+      </div>
+      <span class="badge bd-d1" style="font-size:12px;padding:4px 12px">⚡ 21 Oct — TOMORROW</span>
+    </div>
+    <ul class="task-list" style="margin-top:10px">
+      <li>Project title: <em>MaziwaTrack: Redefining Kenya's Milk Supply System</em></li>
+      <li>Brief system description (purpose, target users, problem solved)</li>
+      <li>Group members with role assignments (Tonybrian, Angelo, Jeremy)</li>
+      <li>5 Functional Requirements (FR1–FR5)</li>
+      <li>3 Non-Functional Requirements (NFR1–NFR3)</li>
+    </ul>
+    <div class="note" style="margin-top:10px">Owner: Jeremy compiles and submits. All three must review before submission.</div>
+  </div>
+
+  <div class="card" style="border-left:4px solid #d97706;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="card-title" style="font-size:15px">◆ Deliverable 2 — Diagrams, Wireframes &amp; DB Schema</div>
+        <div style="font-size:12px;color:var(--muted)">Phase: System Analysis &amp; Design</div>
+      </div>
+      <span class="badge bd-d2" style="font-size:12px;padding:4px 12px">⚡ 21 Oct — TOMORROW</span>
+    </div>
+    <ul class="task-list" style="margin-top:10px">
+      <li>Flowchart of main transaction (Farmer → Grader → Admin → Email)</li>
+      <li>Use Case Diagram (3 actors, all use cases)</li>
+      <li>Class Diagram and ER Diagram</li>
+      <li>Database Schema: users, deliveries, payments, audit_logs (with data types, PKs, FKs, constraints)</li>
+      <li>UI wireframes/mockups: Login, Farmer portal, Grader portal, Admin portal</li>
+    </ul>
+    <div class="note" style="margin-top:10px">Jeremy: diagrams. Angelo: wireframes. Tonybrian: DB schema. Jeremy: compile and submit.</div>
+  </div>
+
+  <div class="card" style="border-left:4px solid #2563eb;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="card-title" style="font-size:15px">◆ Deliverable 3 — Mid-Semester Live Demo</div>
+        <div style="font-size:12px;color:var(--muted)">Phase: Development &amp; Debugging</div>
+      </div>
+      <span class="badge bd-d3" style="font-size:12px;padding:4px 12px">Week 3 · ~6–9 Nov</span>
+    </div>
+    <ul class="task-list" style="margin-top:10px">
+      <li>Working database created in PostgreSQL with all 4 tables + seed data</li>
+      <li>Working frontend: Login, Farmer portal, Grader portal (at minimum)</li>
+      <li>Working admin panel: payment approval list + approve action</li>
+      <li>Frontend connected to backend API, API connected to database</li>
+      <li>Core transaction demonstrable live: register → deliver → test → approve → email</li>
+    </ul>
+    <div class="note" style="margin-top:10px">All three present their own section. Expect live coding / debugging questions from markers.</div>
+  </div>
+
+  <div class="card" style="border-left:4px solid #b91c1c;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="card-title" style="font-size:15px">◆ Deliverable 4 — Final System &amp; Presentation</div>
+        <div style="font-size:12px;color:var(--muted)">Phase: Testing, Deployment &amp; Maintenance</div>
+      </div>
+      <span class="badge bd-d4" style="font-size:12px;padding:4px 12px">25 Nov 2025</span>
+    </div>
+    <ul class="task-list" style="margin-top:10px">
+      <li>Complete system: all FR1–FR5 working, NFR1–NFR3 met</li>
+      <li>Security: bcrypt, 2FA, prepared statements, role middleware, HTTPS</li>
+      <li>PDF reports with logo, date, filters (PDFKit)</li>
+      <li>Audit log visible in admin panel</li>
+      <li>Email notifications working in production (Resend)</li>
+      <li>Live deployment: Vercel (frontend) + Render (API) + hosted PostgreSQL</li>
+      <li>User Manual (installation, usage per role, troubleshooting, screenshots)</li>
+      <li>Presentation: problem, solution, live demo, each member presents their part</li>
+    </ul>
+    <div class="tip" style="margin-top:10px">Graded on: DB normalisation, UI quality, CRUD operations, main transaction, security features, reports, audit log, user manual, coding practices, deployment, and presentation skills.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SETUP ═══════════════════ -->
+<section id="setup" class="page">
+  <h1>Initial Setup Instructions</h1>
+  <p class="page-desc">Complete setup guide. Every team member must follow <strong>Steps 1–5</strong> on their own machine. Tonybrian handles Steps 6–8 (repo creation + scaffolding), then everyone clones.</p>
+
+  <h2>Prerequisites — Install on Every Machine</h2>
+  <div class="step-group">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Node.js (LTS v20+)</h4>
+        <p>Download from <strong>nodejs.org</strong> — choose the <em>LTS</em> version. Verify:</p>
+        <pre>node -v   # should print v20.x.x or higher
+npm -v    # should print 10.x.x or higher</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Git</h4>
+        <p>Download from <strong>git-scm.com</strong>. Configure your identity:</p>
+        <pre>git config --global user.name "Your Name"
+git config --global user.email "your@email.com"</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>PostgreSQL (v15+)</h4>
+        <p>Download from <strong>postgresql.org/download</strong>. Install with the default port <code>5432</code>. Note your superuser password — you will need it for the <code>.env</code> file.<br>Optional but recommended: install <strong>TablePlus</strong> or <strong>pgAdmin</strong> as a GUI client.</p>
+        <pre># Verify installation (Windows: use psql in start menu; Mac/Linux):
+psql --version</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h4>VS Code + Extensions</h4>
+        <p>Download VS Code from <strong>code.visualstudio.com</strong>. Install these extensions:</p>
+        <ul class="task-list" style="margin-top:4px">
+          <li><strong>ESLint</strong> — code quality</li>
+          <li><strong>Prettier — Code formatter</strong> — consistent style</li>
+          <li><strong>PostgreSQL</strong> (by ckolkman) — DB explorer</li>
+          <li><strong>Thunder Client</strong> — API testing without Postman</li>
+          <li><strong>GitLens</strong> — enhanced Git history</li>
+        </ul>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h4>Create a GitHub Account</h4>
+        <p>Sign up at <strong>github.com</strong> if you don't have an account. Send your GitHub username to Tonybrian (repo admin) so he can add you as a collaborator.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Repository Setup — Tonybrian does this ONCE</h2>
+  <div class="step-group">
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <h4>Create the GitHub Repository</h4>
+        <p>Create a new <strong>private</strong> repo named <code>maziwatrack</code> on GitHub. Add Angelo and Jeremy as collaborators (Settings → Collaborators → Add people).</p>
+        <div class="warn">Set <code>main</code> as default branch. Enable branch protection: require 1 review before merging. No direct pushes to <code>main</code>.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <h4>Scaffold the Project Structure</h4>
+        <pre>mkdir maziwatrack && cd maziwatrack
+git init
+
+# Create React client
+npx create-react-app client
+# OR with Vite (faster):
+npm create vite@latest client -- --template react
+
+# Create Express server
+mkdir server && cd server
+npm init -y
+npm install express pg bcrypt jsonwebtoken cors dotenv nodemailer
+npm install --save-dev nodemon
+
+cd ..
+
+# Root-level .gitignore
+echo "node_modules/
+.env
+.env.local
+client/node_modules/
+server/node_modules/
+dist/
+build/" > .gitignore</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">8</div>
+      <div class="step-body">
+        <h4>Create the Project Structure &amp; Push</h4>
+        <pre>maziwatrack/
+  client/             # React app (Angelo's territory)
+    src/
+      pages/          # Login.jsx, FarmerPortal.jsx, GraderPortal.jsx, AdminPortal.jsx
+      components/
+      App.jsx
+  server/             # Express API (Tonybrian's territory)
+    routes/
+      auth.js
+      farmer.js
+      grader.js
+      admin.js
+    middleware/
+      auth.js         # JWT verification + role check
+    db/
+      pool.js         # pg Pool connection
+      schema.sql      # CREATE TABLE statements
+      seed.sql        # Test data (3 users per role)
+    reports/
+      pdf.js          # PDFKit report generation
+    email/
+      mailer.js       # Nodemailer / Resend
+    index.js          # Main server entry point
+  docs/               # Jeremy's territory (diagrams, test cases, manuals)</pre>
+        <pre>git add .
+git commit -m "chore: initial project scaffold"
+git remote add origin https://github.com/&lt;your-username&gt;/maziwatrack.git
+git push -u origin main</pre>
+      </div>
+    </div>
+  </div>
+
+  <h2>Everyone Clones &amp; Configures — After step 8</h2>
+  <div class="step-group">
+    <div class="step">
+      <div class="step-num">9</div>
+      <div class="step-body">
+        <h4>Clone the Repository</h4>
+        <pre>git clone https://github.com/&lt;tonybrian-username&gt;/maziwatrack.git
+cd maziwatrack</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">10</div>
+      <div class="step-body">
+        <h4>Install Dependencies</h4>
+        <pre># Install server dependencies
+cd server && npm install
+
+# Install client dependencies
+cd ../client && npm install</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">11</div>
+      <div class="step-body">
+        <h4>Create Your Local <code>.env</code> File</h4>
+        <p>In the <code>server/</code> folder, create a file named <code>.env</code> (never commit this!):</p>
+        <pre># server/.env
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/maziwatrack
+JWT_SECRET=replace_with_a_long_random_string_here
+SESSION_SECRET=another_long_random_string
+PORT=5000
+
+# Email (development)
+EMAIL_USER=yourgmail@gmail.com
+EMAIL_PASS=your_gmail_app_password
+
+# Set to 'development' or 'production'
+NODE_ENV=development</pre>
+        <div class="tip">For <strong>Gmail app password</strong>: go to Google Account → Security → 2-Step Verification → App passwords → generate one for "Mail".</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">12</div>
+      <div class="step-body">
+        <h4>Create the Local Database</h4>
+        <pre># In your terminal (or pgAdmin):
+psql -U postgres -c "CREATE DATABASE maziwatrack;"
+
+# Run the schema
+psql -U postgres -d maziwatrack -f server/db/schema.sql
+
+# Seed test data
+psql -U postgres -d maziwatrack -f server/db/seed.sql</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">13</div>
+      <div class="step-body">
+        <h4>Start Development Servers</h4>
+        <pre># Terminal 1 — Start Express API
+cd server && npm run dev
+# Server runs at http://localhost:5000
+
+# Terminal 2 — Start React app
+cd client && npm start
+# App runs at http://localhost:3000</pre>
+        <div class="note">Both must be running simultaneously during development. The React app proxies API requests to port 5000.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Database Schema Reference</h2>
+  <pre>-- users
+CREATE TABLE users (
+  id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name        VARCHAR(100) NOT NULL,
+  email       VARCHAR(150) UNIQUE NOT NULL,
+  password    VARCHAR(255) NOT NULL,           -- bcrypt hash
+  role        VARCHAR(10) CHECK (role IN ('farmer','grader','admin')) NOT NULL,
+  is_active   BOOLEAN DEFAULT true,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- deliveries
+CREATE TABLE deliveries (
+  id              INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  batch_number    VARCHAR(20) UNIQUE NOT NULL,
+  farmer_id       INT REFERENCES users(id),
+  declared_litres NUMERIC(8,2) NOT NULL,
+  measured_litres NUMERIC(8,2),
+  status          VARCHAR(20) CHECK (status IN ('pending','passed','rejected','flagged')) DEFAULT 'pending',
+  grader_id       INT REFERENCES users(id),
+  tested_at       TIMESTAMPTZ,
+  notes           TEXT,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- payments
+CREATE TABLE payments (
+  id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  delivery_id   INT REFERENCES deliveries(id) UNIQUE,
+  amount        NUMERIC(12,2) NOT NULL,         -- measured_litres × price_per_litre
+  reference     VARCHAR(30) UNIQUE NOT NULL,
+  status        VARCHAR(20) CHECK (status IN ('pending','approved','paid')) DEFAULT 'pending',
+  admin_id      INT REFERENCES users(id),
+  approved_at   TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- audit_logs
+CREATE TABLE audit_logs (
+  id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id     INT REFERENCES users(id),
+  action      VARCHAR(100) NOT NULL,
+  entity      VARCHAR(50),
+  entity_id   INT,
+  details     JSONB,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);</pre>
+</section>
+
+<!-- ═══════════════════ GIT WORKFLOW ═══════════════════ -->
+<section id="workflow" class="page">
+  <h1>Git Workflow</h1>
+  <p class="page-desc">Feature-branch workflow. Nobody pushes directly to <code>main</code>. Every change goes through a pull request reviewed by at least one other team member.</p>
+
+  <h2>Branch Naming Convention</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:20px">
+    <div style="background:#e8f5ee;border-radius:8px;padding:12px 14px;border:1px solid #9fd8be">
+      <div style="font-size:11px;font-weight:600;color:#0a4a2f;margin-bottom:6px">TONYBRIAN — Backend</div>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0a4a2f">feat/tony-auth-api</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0a4a2f">feat/tony-payment-approval</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0a4a2f">feat/tony-pdf-reports</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0a4a2f">fix/tony-email-bug</code>
+    </div>
+    <div style="background:#e8f0fb;border-radius:8px;padding:12px 14px;border:1px solid #a8ccf0">
+      <div style="font-size:11px;font-weight:600;color:#0c3d72;margin-bottom:6px">ANGELO — Frontend</div>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0c3d72">feat/angelo-login-ui</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0c3d72">feat/angelo-farmer-portal</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0c3d72">feat/angelo-grader-portal</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#0c3d72">fix/angelo-validation</code>
+    </div>
+    <div style="background:#fef3e2;border-radius:8px;padding:12px 14px;border:1px solid #f9d078">
+      <div style="font-size:11px;font-weight:600;color:#7a4800;margin-bottom:6px">JEREMY — Docs/Tests</div>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#7a4800">docs/jeremy-er-diagram</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#7a4800">docs/jeremy-user-manual</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#7a4800">test/jeremy-fr1-cases</code>
+      <code style="font-size:11.5px;display:block;margin:3px 0;color:#7a4800">fix/jeremy-audit-tests</code>
+    </div>
+  </div>
+
+  <h2>Daily Git Workflow</h2>
+  <div class="card">
+    <div class="step" style="border:none;padding-bottom:8px">
+      <div class="step-num" style="background:#1a7f5a">1</div>
+      <div class="step-body">
+        <h4>Start a new feature</h4>
+        <pre>git checkout main
+git pull origin main              # always sync first!
+git checkout -b feat/tony-auth-api</pre>
+      </div>
+    </div>
+    <div class="step" style="border:none;padding:8px 0">
+      <div class="step-num" style="background:#1a7f5a">2</div>
+      <div class="step-body">
+        <h4>Commit frequently with clear messages</h4>
+        <pre>git add .
+git commit -m "feat: add POST /auth/login with bcrypt verify"
+git commit -m "feat: add JWT generation and httpOnly cookie"
+git commit -m "fix: handle invalid credentials with 401"</pre>
+        <div class="tip">Commit prefixes: <code>feat:</code> new feature · <code>fix:</code> bug fix · <code>docs:</code> documentation · <code>chore:</code> setup/config · <code>test:</code> test cases</div>
+      </div>
+    </div>
+    <div class="step" style="border:none;padding:8px 0">
+      <div class="step-num" style="background:#1a7f5a">3</div>
+      <div class="step-body">
+        <h4>Push and open a Pull Request</h4>
+        <pre>git push origin feat/tony-auth-api</pre>
+        <p>Then on GitHub → "Compare &amp; pull request" → assign one reviewer → request review.</p>
+      </div>
+    </div>
+    <div class="step" style="border:none;padding:8px 0;border-bottom:none">
+      <div class="step-num" style="background:#1a7f5a">4</div>
+      <div class="step-body">
+        <h4>Reviewer approves → Merge → Delete branch</h4>
+        <p>Use <strong>Squash and merge</strong> for clean history. Delete the feature branch after merge. Never merge your own PR without a review.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Conflict Prevention</h2>
+  <div class="rules-grid">
+    <div class="rule-card rule-green">
+      <h4>✅ Clear File Ownership</h4>
+      <p>Tonybrian owns <code>server/</code>. Angelo owns <code>client/</code>. Jeremy owns <code>docs/</code>. Overlaps (e.g. <code>App.jsx</code> routing) are discussed before touching.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>✅ Sync Before Every Branch</h4>
+      <p>Always <code>git pull origin main</code> before creating a new branch. This prevents diverged histories and painful merges.</p>
+    </div>
+    <div class="rule-card rule-amber">
+      <h4>⚠️ Never Force-Push to main</h4>
+      <p>If you think you need to force-push, you've made a mistake. Ask the team first. The branch protection rule will block it anyway.</p>
+    </div>
+    <div class="rule-card rule-green">
+      <h4>✅ Small PRs, Not Giant PRs</h4>
+      <p>A PR should represent one coherent feature, not a week's worth of work. Easier to review, easier to revert if something breaks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ TECH STACK ═══════════════════ -->
+<section id="stack" class="page">
+  <h1>Tech Stack &amp; Architecture</h1>
+  <p class="page-desc">The confirmed stack. Every decision traces to a practical reason: the team knows the language, the tools are production-ready, and the free tiers cover the project.</p>
+
+  <h2>Architecture Diagram</h2>
+  <div class="card" style="font-family:var(--mono);font-size:12px;line-height:2;background:#f7f8fa">
+    <pre style="border:none;background:none;padding:0">
+ ┌─────────────────────────────────────────────────────────┐
+ │                   CLIENT (Vercel)                        │
+ │  React + React Router + Bootstrap + Font Awesome         │
+ │  ┌──────────┐  ┌──────────────┐  ┌───────────────────┐  │
+ │  │  Login   │  │ FarmerPortal │  │ GraderPortal      │  │
+ │  │ Register │  │ Submit deliv │  │ Test batches      │  │
+ │  └──────────┘  └──────────────┘  └───────────────────┘  │
+ │                                  ┌───────────────────┐  │
+ │                                  │   AdminPortal     │  │
+ │                                  │ Approve payments  │  │
+ │                                  │ Reports, Audit log│  │
+ │                                  └───────────────────┘  │
+ └────────────────────────┬────────────────────────────────┘
+                          │ HTTPS REST API
+ ┌────────────────────────▼────────────────────────────────┐
+ │                   API (Render)                           │
+ │  Node.js + Express                                       │
+ │  ┌──────────────────────────────────────────────────┐   │
+ │  │ Middleware: JWT verify + Role check              │   │
+ │  └──────────────────────────────────────────────────┘   │
+ │  /auth  /farmer  /grader  /admin  /reports               │
+ │  bcrypt · PDFKit · Nodemailer/Resend · pg pool           │
+ └────────────────────────┬────────────────────────────────┘
+                          │ pg driver (parameterized queries)
+ ┌────────────────────────▼────────────────────────────────┐
+ │              DATABASE (Hosted PostgreSQL)                │
+ │  users · deliveries · payments · audit_logs             │
+ └─────────────────────────────────────────────────────────┘</pre>
+  </div>
+
+  <h2>Library Decisions</h2>
+  <table>
+    <thead><tr><th>Library/Tool</th><th>Purpose</th><th>Why This Choice</th><th>Alternative</th></tr></thead>
+    <tbody>
+      <tr><td><code>express</code></td><td>HTTP server &amp; routing</td><td>Minimal overhead, team knows it, huge ecosystem</td><td>Fastify (faster but less familiar)</td></tr>
+      <tr><td><code>pg</code> (node-postgres)</td><td>PostgreSQL client</td><td>Official, parameterised queries, connection pool</td><td>Prisma (ORM, adds complexity)</td></tr>
+      <tr><td><code>bcrypt</code></td><td>Password hashing</td><td>Industry standard, adaptive cost factor</td><td>argon2 (better, but less common in tutorials)</td></tr>
+      <tr><td><code>jsonwebtoken</code></td><td>Auth tokens</td><td>Stateless, easy role encoding in payload</td><td>express-session (stateful, needs Redis)</td></tr>
+      <tr><td><code>pdfkit</code></td><td>PDF generation</td><td>Pure Node, no Java/external process needed</td><td>JasperReports (requires lecturer approval)</td></tr>
+      <tr><td><code>nodemailer</code></td><td>Email (dev)</td><td>Works with Gmail app password, zero config</td><td>Resend (use in production)</td></tr>
+      <tr><td><strong>React</strong></td><td>UI framework</td><td>Team knows it, component reuse, huge community</td><td>Vanilla JS (more code, less maintainable)</td></tr>
+      <tr><td><strong>React Router</strong></td><td>Client routing</td><td>Standard React routing, protected routes easy</td><td>Next.js (SSR overhead not needed here)</td></tr>
+      <tr><td><strong>Bootstrap 5</strong></td><td>CSS framework</td><td>Fast to build, responsive, graded positively</td><td>Tailwind (utility-first, steeper learning curve)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Efficiency Recommendations</h2>
+  <div class="rules-grid">
+    <div class="rule-card rule-green">
+      <h4>Use a single Express Router per role</h4>
+      <p>Keep <code>farmer.js</code>, <code>grader.js</code>, <code>admin.js</code> separate. Mount them at <code>/api/farmer</code>, <code>/api/grader</code>, <code>/api/admin</code>. This maps 1:1 to React portal pages.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>Centralise error handling</h4>
+      <p>Add a single Express error-handling middleware at the bottom of <code>index.js</code>. All routes <code>next(err)</code> instead of sending their own error responses. Consistent JSON errors on every route.</p>
+    </div>
+    <div class="rule-card rule-amber">
+      <h4>React custom hook per portal</h4>
+      <p>Create <code>useFarmerData()</code>, <code>useGraderData()</code>, <code>useAdminData()</code> hooks to encapsulate API calls. Keep portal JSX clean — data fetching out of the component.</p>
+    </div>
+    <div class="rule-card rule-green">
+      <h4>PostgreSQL transaction blocks</h4>
+      <p>Payment approval must be wrapped in a <code>BEGIN/COMMIT</code> transaction: update delivery status + insert payment + write audit_log — all three or none. Use <code>pg</code>'s client transaction API.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>Store JWT in httpOnly cookie</h4>
+      <p>Never store JWTs in <code>localStorage</code>. Set <code>httpOnly: true</code>, <code>sameSite: 'lax'</code>, <code>secure: true</code> (production). React reads role from a separate non-httpOnly <code>userRole</code> cookie for routing.</p>
+    </div>
+    <div class="rule-card rule-amber">
+      <h4>Validate on both sides</h4>
+      <p>React: UI feedback (required fields, numeric checks). Express: server-side validation before any DB query. Never trust client input. Reject and return <code>400</code> with a clear message.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ RULES ═══════════════════ -->
+<section id="rules" class="page">
+  <h1>Golden Rules</h1>
+  <p class="page-desc">Non-negotiable team agreements. These prevent the most common group-project failures before they happen.</p>
+
+  <h2>Code Quality</h2>
+  <div class="rules-grid">
+    <div class="rule-card rule-green">
+      <h4>No string concatenation in SQL — ever</h4>
+      <p>Always use parameterized queries: <code>db.query('SELECT * FROM users WHERE id = $1', [userId])</code>. String-built queries will be flagged as an automatic fail by the lecturer (SQL injection).</p>
+    </div>
+    <div class="rule-card rule-green">
+      <h4>Comment every non-obvious block</h4>
+      <p>If someone else would spend more than 30 seconds understanding what your code does, add a comment. Especially on: middleware logic, complex SQL, PDF generation, and email templates.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>Naming conventions — stick to them</h4>
+      <p>JavaScript: <code>camelCase</code> for variables and functions. React components: <code>PascalCase</code>. DB columns: <code>snake_case</code>. Constants: <code>UPPER_CASE</code>. Never abbreviate unless universally clear.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>No hardcoded secrets in code</h4>
+      <p>All secrets (DB URL, JWT secret, email password) live in <code>.env</code>. Access via <code>process.env.VARIABLE_NAME</code>. The <code>.env</code> file is in <code>.gitignore</code> and is never committed.</p>
+    </div>
+  </div>
+
+  <h2>Teamwork</h2>
+  <div class="rules-grid">
+    <div class="rule-card rule-amber">
+      <h4>Blocker? Shout within 24 hours</h4>
+      <p>If you are stuck for more than a few hours, say so in the group chat immediately. Never sit quietly on a blocker and miss a deadline. The rest of the team can help unblock you.</p>
+    </div>
+    <div class="rule-card rule-amber">
+      <h4>Never merge your own PR</h4>
+      <p>Open the PR, assign a reviewer, wait. If reviewer hasn't responded in 24 hours, ping them. Merging without review defeats the purpose of code review and can break <code>main</code>.</p>
+    </div>
+    <div class="rule-card rule-green">
+      <h4>Keep the demo always runnable</h4>
+      <p><code>main</code> must always be in a state that runs cleanly after <code>npm install</code> and a fresh DB. Never merge broken code. Test locally first.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>Everyone understands the whole system</h4>
+      <p>You will be questioned on any part of the system during the final presentation, not just your own. At D3 and D4, markers may ask anyone about any part.</p>
+    </div>
+  </div>
+
+  <h2>Pre-Submission Checklist (Jeremy runs this)</h2>
+  <div class="card">
+    <ul class="checklist">
+      <li>All required diagrams are complete and clear</li>
+      <li>Database schema matches the code (no orphan columns, no missing FKs)</li>
+      <li>All 5 functional requirements are demonstrable end-to-end</li>
+      <li>Security: passwords are hashed, 2FA works, prepared statements used throughout</li>
+      <li>PDF report generates with logo, date, and filter options</li>
+      <li>Audit log records every action (register, deliver, test, approve)</li>
+      <li>Email sends successfully to a real address in production</li>
+      <li>Live site is accessible (Vercel URL + Render API both responding)</li>
+      <li>User Manual covers installation, all three role flows, and troubleshooting</li>
+      <li>All team members have rehearsed their presentation section</li>
+      <li>No <code>.env</code> file or secrets in the GitHub repository</li>
+      <li>All open PRs are merged or closed before demo day</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════ COMMS ═══════════════════ -->
+<section id="comms" class="page">
+  <h1>Communication &amp; Meetings</h1>
+  <p class="page-desc">Clear communication prevents surprises. Agree on channels and rhythms now — before anyone gets stuck.</p>
+
+  <h2>Meeting Cadence</h2>
+  <table>
+    <thead><tr><th>Meeting</th><th>When</th><th>Duration</th><th>Owner</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Weekly Sync</td><td>Every Monday</td><td>30 min</td><td>Jeremy (chair)</td><td>What did each person finish? What's next? Any blockers?</td></tr>
+      <tr><td>Pre-Deliverable Review</td><td>3 days before each submission</td><td>60 min</td><td>Jeremy</td><td>Review all deliverable materials together before submission</td></tr>
+      <tr><td>Integration Day</td><td>Start of Week 7 (before D3)</td><td>2–3 hours</td><td>All</td><td>Connect frontend ↔ backend. Fix any integration issues together.</td></tr>
+      <tr><td>Presentation Rehearsal</td><td>Week 10 (2 days before D4)</td><td>60 min</td><td>All</td><td>Full run-through of live demo + presentation slides.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Communication Channels</h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div>
+        <h3 style="margin:0 0 6px;font-size:13px">WhatsApp / Group Chat</h3>
+        <p style="font-size:12px;color:var(--muted)">Day-to-day updates, quick questions, blocker alerts. Respond within 12 hours during weekdays.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px;font-size:13px">GitHub Issues</h3>
+        <p style="font-size:12px;color:var(--muted)">Bug reports and feature sub-tasks. Assign to the relevant person. Close when merged.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px;font-size:13px">GitHub Pull Requests</h3>
+        <p style="font-size:12px;color:var(--muted)">All code review happens here. Leave inline comments, not WhatsApp messages about code.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px;font-size:13px">Shared Google Drive</h3>
+        <p style="font-size:12px;color:var(--muted)">Store deliverable documents, diagrams, wireframes. Anyone can view, relevant owner edits.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Escalation Protocol</h2>
+  <div class="rules-grid">
+    <div class="rule-card rule-green">
+      <h4>Blocker Level 1: Stuck for &lt; 24h</h4>
+      <p>Try to solve it yourself. Use docs, StackOverflow, ChatGPT. If unresolved after ~3 hours, message the group chat.</p>
+    </div>
+    <div class="rule-card rule-amber">
+      <h4>Blocker Level 2: Team can't resolve</h4>
+      <p>Post in group chat. If nobody can help within a day, schedule an emergency 30-min call. Pivot to another task in the meantime.</p>
+    </div>
+    <div class="rule-card rule-blue">
+      <h4>Scope Creep / Change Request</h4>
+      <p>Any change to scope (new feature, tech change) must be agreed by all three members before implementation. No unilateral scope changes — they impact everyone's work.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer style="text-align:center;font-size:11.5px;color:#888;padding:16px 0 20px;border-top:1px solid #e5e7eb;margin-top:0;background:var(--surface)">
+  MaziwaTrack — Team Collaboration Guide · Korir Tonybrian · Morara Angelo · Ng'wono Jeremy · Made with IBM Bob
+</footer>
+
+<script>
+  function goto(id) {
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+    var pg = document.getElementById(id);
+    if (pg) pg.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(function(b){
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf("'"+id+"'") !== -1) {
+        b.classList.add('active');
+      }
+    });
+    window.scrollTo(0,0);
+  }
+</script>
+</body>
+</html>
