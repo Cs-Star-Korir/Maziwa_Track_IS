@@ -1,10 +1,40 @@
-<mxfile host="app.diagrams.net">
-  <diagram name="Page-1" id="aEO7jhVJOuVMJxtLSMTU">
-    <mxGraphModel>
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-      </root>
-    </mxGraphModel>
-  </diagram>
+<mxfile host="65bd71144e">
+    <diagram name="Page-1" id="aEO7jhVJOuVMJxtLSMTU">
+        <mxGraphModel dx="621" dy="466" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" value="Figure 4: MaziwaTrack Entity Relationship Diagram" vertex="1">
+                    <mxGeometry height="30" width="460" x="180" y="5" as="geometry"/>
+                </mxCell>
+                <mxCell id="users" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;p style=&#39;margin:4px;text-align:center&#39;&gt;&lt;b&gt;users&lt;/b&gt;&lt;/p&gt;&lt;hr size=&#39;1&#39;/&gt;&lt;p style=&#39;margin:0 8px;line-height:1.4&#39;&gt;&lt;b&gt;&lt;u&gt;user_id&lt;/u&gt;&lt;/b&gt; (PK)&lt;br/&gt;name&lt;br/&gt;email&lt;br/&gt;password&lt;br/&gt;role&lt;/p&gt;" vertex="1">
+                    <mxGeometry height="140" width="200" x="60" y="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="batches" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;p style=&#39;margin:4px;text-align:center&#39;&gt;&lt;b&gt;batches&lt;/b&gt;&lt;/p&gt;&lt;hr size=&#39;1&#39;/&gt;&lt;p style=&#39;margin:0 8px;line-height:1.4&#39;&gt;&lt;b&gt;&lt;u&gt;batch_id&lt;/u&gt;&lt;/b&gt; (PK)&lt;br/&gt;batch_number&lt;br/&gt;&lt;i&gt;farmer_id&lt;/i&gt; (FK)&lt;br/&gt;litres&lt;br/&gt;quality&lt;br/&gt;status&lt;br/&gt;date&lt;/p&gt;" vertex="1">
+                    <mxGeometry height="175" width="220" x="420" y="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="payments" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&#39;margin:4px;text-align:center&#39;&gt;&lt;b&gt;payments&lt;/b&gt;&lt;/p&gt;&lt;hr size=&#39;1&#39;/&gt;&lt;p style=&#39;margin:0 8px;line-height:1.4&#39;&gt;&lt;b&gt;&lt;u&gt;payment_id&lt;/u&gt;&lt;/b&gt; (PK)&lt;br/&gt;&lt;i&gt;batch_id&lt;/i&gt; (FK)&lt;br/&gt;&lt;i&gt;admin_id&lt;/i&gt; (FK)&lt;br/&gt;amount&lt;br/&gt;date&lt;/p&gt;" vertex="1">
+                    <mxGeometry height="140" width="220" x="420" y="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="audit" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&#39;margin:4px;text-align:center&#39;&gt;&lt;b&gt;audit_logs&lt;/b&gt;&lt;/p&gt;&lt;hr size=&#39;1&#39;/&gt;&lt;p style=&#39;margin:0 8px;line-height:1.4&#39;&gt;&lt;b&gt;&lt;u&gt;log_id&lt;/u&gt;&lt;/b&gt; (PK)&lt;br/&gt;&lt;i&gt;user_id&lt;/i&gt; (FK)&lt;br/&gt;action&lt;br/&gt;date&lt;/p&gt;" vertex="1">
+                    <mxGeometry height="120" width="200" x="60" y="440" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" edge="1" parent="1" source="users" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERmandOne;endArrow=ERmany;startFill=0;endFill=0;startSize=12;endSize=12;fontSize=11;labelBackgroundColor=#ffffff;" target="batches" value="records">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" edge="1" parent="1" source="batches" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERmandOne;endArrow=ERzeroToOne;startFill=0;endFill=0;startSize=12;endSize=12;fontSize=11;labelBackgroundColor=#ffffff;" target="payments" value="paid by">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" edge="1" parent="1" source="users" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERmandOne;endArrow=ERmany;startFill=0;endFill=0;startSize=12;endSize=12;fontSize=11;labelBackgroundColor=#ffffff;" target="payments" value="approves">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" edge="1" parent="1" source="users" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERmandOne;endArrow=ERmany;startFill=0;endFill=0;startSize=12;endSize=12;fontSize=11;labelBackgroundColor=#ffffff;" target="audit" value="creates">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="key" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;" value="&lt;p style=&#39;margin:6px;text-align:center&#39;&gt;&lt;b&gt;Key&lt;/b&gt;&lt;/p&gt;&lt;hr size=&#39;1&#39;/&gt;&lt;p style=&#39;margin:4px 10px;line-height:1.5&#39;&gt;&lt;b&gt;&lt;u&gt;PK&lt;/u&gt;&lt;/b&gt; = primary key (unique ID for each row)&lt;br/&gt;&lt;i&gt;FK&lt;/i&gt; = foreign key (links to another table&#39;s PK)&lt;br/&gt;&lt;br/&gt;&lt;b&gt;&amp;nbsp;|| &lt;/b&gt;&amp;nbsp;= exactly one&lt;br/&gt;&lt;b&gt;&amp;nbsp;&amp;gt;| &lt;/b&gt;&amp;nbsp;= many (crow&#39;s foot)&lt;br/&gt;&lt;b&gt;&amp;nbsp;o| &lt;/b&gt;&amp;nbsp;= zero or one&lt;br/&gt;&lt;br/&gt;Example: one user records many batches;&lt;br/&gt;each batch has at most one payment.&lt;/p&gt;" vertex="1">
+                    <mxGeometry height="190" width="340" x="420" y="490" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
 </mxfile>
