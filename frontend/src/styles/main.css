@@ -1,0 +1,203 @@
+/* MaziwaTrack theme on top of Bootstrap.
+   Idea: the morning milk collection – enamel-blue churns, milk white, a touch of pasture green.
+   Headings: Bricolage Grotesque. Body: Atkinson Hyperlegible (designed for easy reading).
+   Light/dark comes from Bootstrap's data-bs-theme on <html>, recoloured below. */
+
+/* ---------- Colours: light ---------- */
+:root,
+[data-bs-theme='light'] {
+  --mt-blue: #1d4f91;        /* enamel blue: header band, buttons, links */
+  --mt-blue-dark: #153c70;   /* hover */
+  --mt-sky: #e6f0fa;         /* light blue tint: table headers, inner panels */
+  --mt-sky-strong: #c6dbf1;  /* borders, selected rows */
+  --mt-pasture: #2e7d4f;     /* green: paid, success */
+  --mt-page: #eef3f7;        /* page behind the white sheet */
+  --mt-band: #1d4f91;
+  --mt-band-2: #2a68b5;
+
+  --bs-primary: var(--mt-blue);
+  --bs-primary-rgb: 29, 79, 145;
+  --bs-success: var(--mt-pasture);
+  --bs-success-rgb: 46, 125, 79;
+  --bs-link-color: var(--mt-blue);
+  --bs-link-color-rgb: 29, 79, 145;
+  --bs-link-hover-color: var(--mt-blue-dark);
+  --bs-link-hover-color-rgb: 21, 60, 112;
+  --bs-body-bg: #ffffff;
+  --bs-body-color: #1c2b3a;
+  --bs-secondary-color: #5b6b7b;
+  --bs-tertiary-bg: #ffffff;
+  --bs-border-color: #d6e1eb;
+  --bs-focus-ring-color: rgba(29, 79, 145, 0.25);
+}
+
+/* ---------- Colours: dark (night at the cooling centre) ---------- */
+[data-bs-theme='dark'] {
+  --mt-blue: #7fb5ea;
+  --mt-blue-dark: #a3cbf2;
+  --mt-sky: #182b40;
+  --mt-sky-strong: #27476a;
+  --mt-pasture: #5cbf86;
+  --mt-page: #0b1520;
+  --mt-band: #12263d;
+  --mt-band-2: #183456;
+
+  --bs-primary: var(--mt-blue);
+  --bs-primary-rgb: 127, 181, 234;
+  --bs-success: var(--mt-pasture);
+  --bs-success-rgb: 92, 191, 134;
+  --bs-link-color: var(--mt-blue);
+  --bs-link-color-rgb: 127, 181, 234;
+  --bs-link-hover-color: var(--mt-blue-dark);
+  --bs-link-hover-color-rgb: 163, 203, 242;
+  --bs-body-bg: #111f2e;
+  --bs-body-color: #e2ebf4;
+  --bs-secondary-color: #9fb1c3;
+  --bs-secondary-bg: #1a2c40;
+  --bs-tertiary-bg: #111f2e;
+  --bs-border-color: #263b52;
+  --bs-focus-ring-color: rgba(127, 181, 234, 0.3);
+}
+
+/* ---------- Type ---------- */
+:root {
+  --bs-body-font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mt-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
+}
+body { background-color: var(--mt-page); }
+h1, h2, h3, .h1, .h2, .h3, .h4, .h5, .modal-title, .mt-brand { font-family: var(--mt-display); letter-spacing: -0.01em; }
+h2, .h2 { font-size: 1.25rem; font-weight: 700; }
+.mt-brand { font-weight: 800; font-size: 1.3rem; }
+
+/* ---------- Header band (the one bold element) ---------- */
+.mt-band {
+  position: relative;
+  color: #fff;
+  background: linear-gradient(180deg, var(--mt-band) 0%, var(--mt-band-2) 100%);
+  padding-bottom: 4.5rem;
+}
+.mt-navbar { padding-top: 0.75rem; }
+.mt-navbar .nav-link { color: rgba(255, 255, 255, 0.82); }
+.mt-navbar .nav-link:hover { color: #fff; }
+.mt-navbar .nav-link.active { color: #fff; font-weight: 700; box-shadow: inset 0 -2px 0 #fff; }
+.mt-who { color: rgba(255, 255, 255, 0.75); font-size: 0.95rem; margin-left: 0.5rem; padding-left: 0.75rem; border-left: 1px solid rgba(255, 255, 255, 0.35); }
+.mt-band-title { padding-top: 1.75rem; }
+.mt-band-title h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin: 0; }
+.mt-band-title p { margin: 0.25rem 0 0; color: rgba(255, 255, 255, 0.78); }
+.mt-wave { position: absolute; left: 0; bottom: -1px; width: 100%; height: 48px; fill: var(--mt-page); }
+
+/* White sheet that overlaps the band */
+.mt-sheet-wrap { margin-top: -3rem; position: relative; padding-bottom: 3rem; }
+.mt-sheet {
+  background: var(--bs-body-bg);
+  border-radius: 18px;
+  padding: clamp(1rem, 3vw, 2rem);
+  box-shadow: 0 10px 30px -12px rgba(16, 45, 80, 0.25);
+}
+
+/* Panels inside the sheet: tinted, not boxed */
+.mt-sheet .card { background: var(--mt-sky); border: 0; border-radius: 12px; }
+.mt-sheet .card .form-control, .mt-sheet .card .form-select { background-color: var(--bs-body-bg); }
+
+/* ---------- Buttons ---------- */
+.btn { border-radius: 10px; font-weight: 700; }
+.btn-link { font-weight: 400; }
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--mt-blue);
+  --bs-btn-border-color: var(--mt-blue);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--mt-blue-dark);
+  --bs-btn-hover-border-color: var(--mt-blue-dark);
+  --bs-btn-active-bg: var(--mt-blue-dark);
+  --bs-btn-active-border-color: var(--mt-blue-dark);
+  --bs-btn-disabled-bg: var(--mt-blue);
+  --bs-btn-disabled-border-color: var(--mt-blue);
+}
+[data-bs-theme='dark'] .btn-primary { --bs-btn-color: #0b1520; --bs-btn-hover-color: #0b1520; --bs-btn-disabled-color: #0b1520; }
+.btn-outline-primary {
+  --bs-btn-color: var(--mt-blue);
+  --bs-btn-border-color: var(--mt-blue);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--mt-blue);
+  --bs-btn-hover-border-color: var(--mt-blue);
+  --bs-btn-active-bg: var(--mt-blue-dark);
+  --bs-btn-active-border-color: var(--mt-blue-dark);
+}
+[data-bs-theme='dark'] .btn-outline-primary { --bs-btn-hover-color: #0b1520; }
+.text-bg-success { background-color: var(--mt-pasture) !important; }
+
+/* ---------- Forms ---------- */
+.form-control, .form-select { border-radius: 10px; }
+.form-control:focus, .form-select:focus { border-color: var(--mt-blue); box-shadow: 0 0 0 0.2rem var(--bs-focus-ring-color); }
+.form-check-input:checked { background-color: var(--mt-blue); border-color: var(--mt-blue); }
+.form-label { font-weight: 700; }
+
+/* ---------- Tables ---------- */
+.table > thead th { background: var(--mt-sky); border-bottom: 0; font-weight: 700; }
+.table > thead th:first-child { border-top-left-radius: 8px; }
+.table > thead th:last-child { border-top-right-radius: 8px; }
+.table-active, .table-active > td { --bs-table-bg-state: var(--mt-sky-strong); }
+
+/* ---------- Batch number ticket (farmer, after saving) ---------- */
+.batch-ticket {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background: var(--bs-body-bg);
+  border: 2px dashed var(--mt-blue);
+  border-radius: 12px;
+}
+.batch-ticket .number { font-family: var(--mt-display); font-weight: 800; font-size: 1.5rem; color: var(--mt-blue); letter-spacing: 0.02em; }
+
+/* ---------- Login / Register / Help ---------- */
+.auth-page { min-height: 100vh; display: flex; flex-direction: column; padding: 1rem; background: var(--bs-body-bg); }
+.auth-top { display: flex; justify-content: flex-end; }
+.auth-inner { width: 100%; max-width: 400px; margin: auto; padding: 2rem 0; }
+.auth-inner h2 { font-size: 1.9rem; font-weight: 800; }
+
+/* ---------- Appearance picker: Light / System / Dark ---------- */
+.theme-picker {
+  display: inline-flex; padding: 3px; gap: 2px;
+  border-radius: 999px;
+  background: rgba(127, 160, 200, 0.18);
+  border: 1px solid rgba(127, 160, 200, 0.35);
+}
+.theme-picker button {
+  display: grid; place-items: center;
+  width: 30px; height: 26px; padding: 0;
+  border: 0; border-radius: 999px;
+  background: transparent; color: inherit; opacity: 0.7; cursor: pointer;
+}
+.theme-picker button svg { width: 16px; height: 16px; }
+.theme-picker button:hover { opacity: 1; }
+.theme-picker button[aria-checked='true'] { background: #fff; color: #1d4f91; opacity: 1; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+.theme-picker button:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+.mt-navbar .theme-picker { color: #fff; }
+.auth-top .theme-picker { color: var(--bs-body-color); }
+
+/* Clickable table rows (grader list) */
+tr[role='button'] { cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ---------- Printing receipts and reports: only the .print-area, black on white ---------- */
+@media print {
+  body { background: #fff !important; }
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area {
+    position: absolute; inset: 0 auto auto 0; width: 100%;
+    border: 0 !important; color: #000 !important; background: #fff !important; box-shadow: none !important;
+  }
+  .print-area .table { --bs-table-color: #000; --bs-table-bg: #fff; }
+  .print-area .table > thead th { background: #fff; }
+  .modal-backdrop, .no-print { display: none !important; }
+  /* a receipt opened in a pop-up prints at the top of the page, not in the middle */
+  .modal, .modal-dialog, .modal-content, .modal-body, .mt-sheet, .mt-sheet-wrap {
+    position: static !important; transform: none !important; margin: 0 !important;
+    border: 0 !important; box-shadow: none !important; max-width: none !important;
+    overflow: visible !important; min-height: 0 !important; padding: 0 !important;
+  }
+}
