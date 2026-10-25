@@ -11,7 +11,12 @@ export const date = (iso) =>
 export const dateTime = (iso) =>
   iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '–';
 
-export const todayISO = () => new Date().toISOString().slice(0, 10);
+// Today's date as YYYY-MM-DD in the user's own time zone (toISOString would give the UTC date,
+// which is still "yesterday" in Kenya between midnight and 3 a.m.).
+export const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 // True when the grader's measured litres differ from what the farmer declared.
 export const isMismatch = (b) =>
