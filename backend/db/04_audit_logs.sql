@@ -1,0 +1,109 @@
+-- =====================================================================
+-- MaziwaTrack sample data: audit_logs
+-- Database: maziwa-track.  Run AFTER schema.sql, in this order:
+--   01_users.sql -> 02_batches.sql -> 03_payments.sql -> 04_audit_logs.sql
+-- (each file needs the rows from the files before it)
+--
+-- 88 entries that match the rows above: farmer registrations, logins,
+-- deliveries, grader tests, payment approvals and one report.
+-- =====================================================================
+USE `maziwatrack_db`;
+SET NAMES utf8mb4;
+START TRANSACTION;
+
+INSERT INTO audit_logs (user_id, action, table_name, record_id, old_value, new_value, created_at) VALUES
+  (3, 'REGISTER', 'users', 3, NULL, '{"full_name": "Wanjiku Mwangi", "email": "wanjiku.mwangi@example.com"}', '2026-10-15 07:09:00'),
+  (4, 'REGISTER', 'users', 4, NULL, '{"full_name": "Kamau Njoroge", "email": "kamau.njoroge@example.com"}', '2026-10-15 07:32:00'),
+  (5, 'REGISTER', 'users', 5, NULL, '{"full_name": "Achieng Odhiambo", "email": "achieng.odhiambo@example.com"}', '2026-10-15 07:55:00'),
+  (6, 'REGISTER', 'users', 6, NULL, '{"full_name": "Kiprop Rotich", "email": "kiprop.rotich@example.com"}', '2026-10-15 08:18:00'),
+  (7, 'REGISTER', 'users', 7, NULL, '{"full_name": "Mumbua Musyoka", "email": "mumbua.musyoka@example.com"}', '2026-10-15 08:41:00'),
+  (8, 'REGISTER', 'users', 8, NULL, '{"full_name": "Hassan Abdi", "email": "hassan.abdi@example.com"}', '2026-10-15 09:04:00'),
+  (9, 'REGISTER', 'users', 9, NULL, '{"full_name": "Njeri Kariuki", "email": "njeri.kariuki@example.com"}', '2026-10-15 09:27:00'),
+  (10, 'REGISTER', 'users', 10, NULL, '{"full_name": "Otieno Ouma", "email": "otieno.ouma@example.com"}', '2026-10-15 09:50:00'),
+  (11, 'REGISTER', 'users', 11, NULL, '{"full_name": "Chebet Kosgei", "email": "chebet.kosgei@example.com"}', '2026-10-15 10:13:00'),
+  (12, 'REGISTER', 'users', 12, NULL, '{"full_name": "Mutua Kilonzo", "email": "mutua.kilonzo@example.com"}', '2026-10-15 10:36:00'),
+  (13, 'REGISTER', 'users', 13, NULL, '{"full_name": "Akinyi Omondi", "email": "akinyi.omondi@example.com"}', '2026-10-15 10:59:00'),
+  (14, 'REGISTER', 'users', 14, NULL, '{"full_name": "Kipchoge Langat", "email": "kipchoge.langat@example.com"}', '2026-10-15 11:22:00'),
+  (15, 'REGISTER', 'users', 15, NULL, '{"full_name": "Wairimu Gachanja", "email": "wairimu.gachanja@example.com"}', '2026-10-15 11:45:00'),
+  (16, 'REGISTER', 'users', 16, NULL, '{"full_name": "Barasa Wafula", "email": "barasa.wafula@example.com"}', '2026-10-15 12:08:00'),
+  (17, 'REGISTER', 'users', 17, NULL, '{"full_name": "Nafula Simiyu", "email": "nafula.simiyu@example.com"}', '2026-10-15 12:31:00'),
+  (18, 'REGISTER', 'users', 18, NULL, '{"full_name": "Onyango Okoth", "email": "onyango.okoth@example.com"}', '2026-10-15 12:54:00'),
+  (19, 'REGISTER', 'users', 19, NULL, '{"full_name": "Jepkemboi Kibet", "email": "jepkemboi.kibet@example.com"}', '2026-10-15 13:17:00'),
+  (20, 'REGISTER', 'users', 20, NULL, '{"full_name": "Muthoni Wambui", "email": "muthoni.wambui@example.com"}', '2026-10-15 13:40:00'),
+  (21, 'REGISTER', 'users', 21, NULL, '{"full_name": "Ochieng Owino", "email": "ochieng.owino@example.com"}', '2026-10-15 14:03:00'),
+  (22, 'REGISTER', 'users', 22, NULL, '{"full_name": "Nduta Kimani", "email": "nduta.kimani@example.com"}', '2026-10-15 14:26:00'),
+  (23, 'REGISTER', 'users', 23, NULL, '{"full_name": "Kiprotich Cheruiyot", "email": "kiprotich.cheruiyot@example.com"}', '2026-10-15 14:49:00'),
+  (24, 'REGISTER', 'users', 24, NULL, '{"full_name": "Atieno Adhiambo", "email": "atieno.adhiambo@example.com"}', '2026-10-15 15:12:00'),
+  (25, 'REGISTER', 'users', 25, NULL, '{"full_name": "Mwende Nzioka", "email": "mwende.nzioka@example.com"}', '2026-10-15 15:35:00'),
+  (4, 'RECORD_DELIVERY', 'batches', 2, NULL, '{"declared_litres": 22.0}', '2026-10-20 05:01:00'),
+  (3, 'RECORD_DELIVERY', 'batches', 1, NULL, '{"declared_litres": 30.5}', '2026-10-20 05:05:00'),
+  (2, 'TEST_BATCH', 'batches', 1, '{"status": "recorded"}', '{"measured_litres": 30.0, "quality_result": "pass", "status": "passed"}', '2026-10-20 07:23:00'),
+  (2, 'TEST_BATCH', 'batches', 2, '{"status": "recorded"}', '{"measured_litres": 22.0, "quality_result": "pass", "status": "passed"}', '2026-10-20 07:28:00'),
+  (5, 'RECORD_DELIVERY', 'batches', 3, NULL, '{"declared_litres": 30.5}', '2026-10-21 03:27:00'),
+  (2, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-21 03:55:00'),
+  (1, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-21 04:28:00'),
+  (2, 'TEST_BATCH', 'batches', 3, '{"status": "recorded"}', '{"measured_litres": 29.5, "quality_result": "pass", "status": "passed"}', '2026-10-21 05:52:00'),
+  (6, 'RECORD_DELIVERY', 'batches', 4, NULL, '{"declared_litres": 28.5}', '2026-10-21 06:36:00'),
+  (2, 'TEST_BATCH', 'batches', 4, '{"status": "recorded"}', '{"measured_litres": 28.5, "quality_result": "pass", "status": "passed"}', '2026-10-21 08:12:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 1, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261021-0001"}', '2026-10-21 09:19:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 2, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261021-0002"}', '2026-10-21 11:23:00'),
+  (8, 'RECORD_DELIVERY', 'batches', 6, NULL, '{"declared_litres": 28.5}', '2026-10-22 03:40:00'),
+  (7, 'RECORD_DELIVERY', 'batches', 5, NULL, '{"declared_litres": 35.0}', '2026-10-22 03:45:00'),
+  (2, 'TEST_BATCH', 'batches', 5, '{"status": "recorded"}', '{"measured_litres": 34.5, "quality_result": "pass", "status": "passed"}', '2026-10-22 05:54:00'),
+  (2, 'TEST_BATCH', 'batches', 6, '{"status": "recorded"}', '{"measured_litres": 28.5, "quality_result": "pass", "status": "passed"}', '2026-10-22 06:14:00'),
+  (9, 'RECORD_DELIVERY', 'batches', 7, NULL, '{"declared_litres": 25.0}', '2026-10-22 06:51:00'),
+  (15, 'RECORD_DELIVERY', 'batches', 8, NULL, '{"declared_litres": 30.0}', '2026-10-22 06:51:00'),
+  (2, 'TEST_BATCH', 'batches', 7, '{"status": "recorded"}', '{"measured_litres": 25.0, "quality_result": "pass", "status": "passed"}', '2026-10-22 08:09:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 3, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261022-0003"}', '2026-10-22 08:46:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 4, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261022-0004"}', '2026-10-22 08:57:00'),
+  (2, 'TEST_BATCH', 'batches', 8, '{"status": "recorded"}', '{"measured_litres": 30.0, "quality_result": "reject", "status": "rejected"}', '2026-10-22 09:03:00'),
+  (2, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-23 03:41:00'),
+  (1, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-23 04:48:00'),
+  (11, 'RECORD_DELIVERY', 'batches', 10, NULL, '{"declared_litres": 28.0}', '2026-10-23 05:20:00'),
+  (10, 'RECORD_DELIVERY', 'batches', 9, NULL, '{"declared_litres": 28.0}', '2026-10-23 05:44:00'),
+  (16, 'RECORD_DELIVERY', 'batches', 11, NULL, '{"declared_litres": 20.0}', '2026-10-23 06:04:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 5, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261023-0005"}', '2026-10-23 07:48:00'),
+  (2, 'TEST_BATCH', 'batches', 10, '{"status": "recorded"}', '{"measured_litres": 28.0, "quality_result": "pass", "status": "passed"}', '2026-10-23 07:52:00'),
+  (2, 'TEST_BATCH', 'batches', 11, '{"status": "recorded"}', '{"measured_litres": 20.0, "quality_result": "reject", "status": "rejected"}', '2026-10-23 08:10:00'),
+  (2, 'TEST_BATCH', 'batches', 9, '{"status": "recorded"}', '{"measured_litres": 27.0, "quality_result": "pass", "status": "passed"}', '2026-10-23 08:11:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 7, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261023-0007"}', '2026-10-23 08:18:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 6, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261023-0006"}', '2026-10-23 08:49:00'),
+  (14, 'RECORD_DELIVERY', 'batches', 14, NULL, '{"declared_litres": 35.5}', '2026-10-24 03:20:00'),
+  (13, 'RECORD_DELIVERY', 'batches', 13, NULL, '{"declared_litres": 18.0}', '2026-10-24 03:39:00'),
+  (12, 'RECORD_DELIVERY', 'batches', 12, NULL, '{"declared_litres": 25.0}', '2026-10-24 04:47:00'),
+  (2, 'TEST_BATCH', 'batches', 13, '{"status": "recorded"}', '{"measured_litres": 18.0, "quality_result": "pass", "status": "passed"}', '2026-10-24 05:18:00'),
+  (2, 'TEST_BATCH', 'batches', 14, '{"status": "recorded"}', '{"measured_litres": 34.5, "quality_result": "pass", "status": "passed"}', '2026-10-24 05:28:00'),
+  (2, 'TEST_BATCH', 'batches', 12, '{"status": "recorded"}', '{"measured_litres": 25.0, "quality_result": "pass", "status": "passed"}', '2026-10-24 06:47:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 9, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261024-0008"}', '2026-10-24 09:04:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 10, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261024-0009"}', '2026-10-24 09:19:00'),
+  (2, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-25 03:30:00'),
+  (1, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-25 04:12:00'),
+  (17, 'RECORD_DELIVERY', 'batches', 15, NULL, '{"declared_litres": 30.0}', '2026-10-25 04:38:00'),
+  (18, 'RECORD_DELIVERY', 'batches', 16, NULL, '{"declared_litres": 15.5}', '2026-10-25 04:59:00'),
+  (2, 'TEST_BATCH', 'batches', 15, '{"status": "recorded"}', '{"measured_litres": 30.0, "quality_result": "reject", "status": "rejected"}', '2026-10-25 06:04:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 14, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261025-0012"}', '2026-10-25 06:58:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 13, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261025-0011"}', '2026-10-25 07:27:00'),
+  (2, 'TEST_BATCH', 'batches', 16, '{"status": "recorded"}', '{"measured_litres": 15.0, "quality_result": "pass", "status": "passed"}', '2026-10-25 07:31:00'),
+  (1, 'APPROVE_PAYMENT', 'batches', 12, '{"status": "passed"}', '{"status": "paid", "payment_reference": "PAY-20261025-0010"}', '2026-10-25 10:24:00'),
+  (21, 'RECORD_DELIVERY', 'batches', 19, NULL, '{"declared_litres": 20.0}', '2026-10-26 06:20:00'),
+  (19, 'RECORD_DELIVERY', 'batches', 17, NULL, '{"declared_litres": 15.5}', '2026-10-26 06:51:00'),
+  (20, 'RECORD_DELIVERY', 'batches', 18, NULL, '{"declared_litres": 12.0}', '2026-10-26 06:56:00'),
+  (2, 'TEST_BATCH', 'batches', 17, '{"status": "recorded"}', '{"measured_litres": 15.5, "quality_result": "pass", "status": "passed"}', '2026-10-26 08:15:00'),
+  (2, 'TEST_BATCH', 'batches', 19, '{"status": "recorded"}', '{"measured_litres": 19.5, "quality_result": "pass", "status": "passed"}', '2026-10-26 08:27:00'),
+  (2, 'TEST_BATCH', 'batches', 18, '{"status": "recorded"}', '{"measured_litres": 12.0, "quality_result": "pass", "status": "passed"}', '2026-10-26 09:18:00'),
+  (1, 'GENERATE_REPORT', NULL, NULL, NULL, '{"report": "Payments by date range"}', '2026-10-26 14:05:00'),
+  (2, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-27 03:43:00'),
+  (4, 'RECORD_DELIVERY', 'batches', 25, NULL, '{"declared_litres": 30.0}', '2026-10-27 04:02:00'),
+  (23, 'RECORD_DELIVERY', 'batches', 21, NULL, '{"declared_litres": 30.0}', '2026-10-27 04:37:00'),
+  (25, 'RECORD_DELIVERY', 'batches', 23, NULL, '{"declared_litres": 12.5}', '2026-10-27 04:43:00'),
+  (1, 'LOGIN', NULL, NULL, NULL, NULL, '2026-10-27 04:45:00'),
+  (3, 'RECORD_DELIVERY', 'batches', 24, NULL, '{"declared_litres": 18.5}', '2026-10-27 06:02:00'),
+  (22, 'RECORD_DELIVERY', 'batches', 20, NULL, '{"declared_litres": 35.0}', '2026-10-27 06:36:00'),
+  (24, 'RECORD_DELIVERY', 'batches', 22, NULL, '{"declared_litres": 22.0}', '2026-10-27 06:39:00');
+
+COMMIT;
+
+-- Verification (read-only)
+-- Expected: 88 rows in total
+SELECT action, COUNT(*) AS entries FROM audit_logs GROUP BY action ORDER BY entries DESC;
+SELECT COUNT(*) AS total_entries FROM audit_logs;
