@@ -1,48 +1,47 @@
-// MySQL / MariaDB connection pool and small database helpers.
-const mysql = require('mysql2/promise');
+// PostgreSQL (Supabase) connection pool and small database helpers.
+const { Pool, types } = require('pg');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || 'maziwa-track',
-  connectionLimit: 10,
-  decimalNumbers: true, // DECIMAL columns come back as numbers, not strings
-  timezone: 'Z',        // all timestamps are handled in UTC; the frontend shows local time
-  dateStrings: false,
+// NUMERIC columns (litres, prices) come back as numbers, not strings.
+types.setTypeParser(types.builtins.NUMERIC, (v) => (v === null ? null : parseFloat(v)));
+
+const url = process.env.DATABASE_URL || '';
+const isLocal = /@(localhost|127\.0\.0\.1)[:/]/.test(url);
+
+const pool = new Pool({
+  connectionString: url,
+  // Supabase requires an encrypted connection; a local Postgres usually has no SSL.
+  ssl: isLocal ? false : { rejectUnauthorized: false },
+  max: 10,
 });
 
-// Every new connection: UTC session time, and strict mode so bad values are rejected.
-pool.on('connection', (conn) => {
-  conn.query("SET time_zone = '+00:00'");
-  conn.query("SET SESSION sql_mode = CONCAT(@@SESSION.sql_mode, ',STRICT_TRANS_TABLES')");
-});
+// Times are stored as TIMESTAMPTZ (an exact moment), so the API always returns UTC
+// and the frontend shows local time. Kenyan dates are worked out with LOCAL_TZ below.
 
-// The cooperative's local time zone (Kenya), used for batch-number dates and date filters.
-const LOCAL_TZ = process.env.LOCAL_TZ_OFFSET || '+03:00';
+// The cooperative's time zone (Kenya), used for batch-number dates and date filters.
+// Use a named zone: Postgres reads offsets like '+03:00' the opposite way round.
+const LOCAL_TZ = process.env.TIME_ZONE || 'Africa/Nairobi';
 
-// Runs fn(conn) inside a transaction: commit if it succeeds, roll back if it throws.
+// Runs fn(client) inside a transaction: commit if it succeeds, roll back if it throws.
 async function withTransaction(fn) {
-  const conn = await pool.getConnection();
+  const client = await pool.connect();
   try {
-    await conn.beginTransaction();
-    const result = await fn(conn);
-    await conn.commit();
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
     return result;
   } catch (err) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw err;
   } finally {
-    conn.release();
+    client.release(); // always give the connection back, or the app runs out of them
   }
 }
 
-// Adds one row to audit_logs. Pass a transaction connection to keep it in the same transaction.
+// Adds one row to audit_logs. Pass a transaction client to keep it in the same transaction.
 async function audit(db, userId, action, { table = null, recordId = null, oldValue = null, newValue = null } = {}) {
   await db.query(
     `INSERT INTO audit_logs (user_id, action, table_name, record_id, old_value, new_value)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+     VALUES ($1, $2, $3, $4, $5, $6)`,
     [userId, action, table, recordId,
       oldValue ? JSON.stringify(oldValue) : null,
       newValue ? JSON.stringify(newValue) : null],

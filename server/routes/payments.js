@@ -56,35 +56,36 @@ router.post('/', async (req, res) => {
   const price = PRICE_PER_LITRE();
 
   const { paymentId, farmerEmail } = await withTransaction(async (conn) => {
-    const [rows] = await conn.query(
+    const { rows } = await conn.query(
       `SELECT b.batch_id, b.status, u.email FROM batches b JOIN users u ON u.user_id = b.farmer_id
-       WHERE b.batch_number = ? FOR UPDATE`, [batchNumber]);
+       WHERE b.batch_number = $1 FOR UPDATE OF b`, [batchNumber]);
     if (!rows.length) throw Object.assign(new Error('Batch not found.'), { status: 404 });
     if (rows[0].status !== 'passed') {
       throw Object.assign(new Error('Only batches that passed testing can be paid.'), { status: 409 });
     }
 
     // Temporary reference, then the real one from the new payment_id: PAY-YYYYMMDD-0002
-    const [r] = await conn.query(
-      'INSERT INTO payments (batch_id, admin_id, price_per_litre, payment_reference) VALUES (?, ?, ?, ?)',
+    const { rows: [pay] } = await conn.query(
+      `INSERT INTO payments (batch_id, admin_id, price_per_litre, payment_reference)
+       VALUES ($1, $2, $3, $4) RETURNING payment_id`,
       [rows[0].batch_id, req.user.user_id, price, `TMP-${Date.now()}`]);
-    const [[{ d }]] = await conn.query(
-      "SELECT DATE_FORMAT(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', ?), '%Y%m%d') AS d", [LOCAL_TZ]);
-    const reference = `PAY-${d}-${String(r.insertId).padStart(4, '0')}`;
-    await conn.query('UPDATE payments SET payment_reference = ? WHERE payment_id = ?', [reference, r.insertId]);
-    await conn.query("UPDATE batches SET status = 'paid' WHERE batch_id = ?", [rows[0].batch_id]);
+    const { rows: [{ d }] } = await conn.query(
+      "SELECT to_char(now() AT TIME ZONE $1, 'YYYYMMDD') AS d", [LOCAL_TZ]);
+    const reference = `PAY-${d}-${String(pay.payment_id).padStart(4, '0')}`;
+    await conn.query('UPDATE payments SET payment_reference = $1 WHERE payment_id = $2', [reference, pay.payment_id]);
+    await conn.query("UPDATE batches SET status = 'paid' WHERE batch_id = $1", [rows[0].batch_id]);
     await audit(conn, req.user.user_id, 'APPROVE_PAYMENT', {
       table: 'batches', recordId: rows[0].batch_id,
       oldValue: { status: 'passed' },
       newValue: { status: 'paid', payment_reference: reference },
     });
-    return { paymentId: r.insertId, farmerEmail: rows[0].email };
+    return { paymentId: pay.payment_id, farmerEmail: rows[0].email };
   });
 
   // Email after the payment is saved, so a mail problem never undoes an approval.
   let batch = await findBatch(pool, batchNumber);
   if (await emailFarmer(farmerEmail, batch)) {
-    await pool.query('UPDATE payments SET email_sent = TRUE WHERE payment_id = ?', [paymentId]);
+    await pool.query('UPDATE payments SET email_sent = TRUE WHERE payment_id = $1', [paymentId]);
     batch = await findBatch(pool, batchNumber);
   }
   res.status(201).json(batch);

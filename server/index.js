@@ -3,7 +3,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 
-const missing = ['DB_USER', 'DB_NAME', 'JWT_SECRET'].filter((k) => !process.env[k]);
+const missing = ['DATABASE_URL', 'JWT_SECRET'].filter((k) => !process.env[k]);
 if (missing.length) {
   console.error(`Missing settings in .env: ${missing.join(', ')}. Copy .env.example to .env in the project root (next to package.json) and fill it in.`);
   process.exit(1);
@@ -19,7 +19,7 @@ pool.query('SELECT 1')
     app.listen(PORT, () => console.log(`MaziwaTrack API running on http://localhost:${PORT}/api`));
   })
   .catch((err) => {
-    console.error(`Cannot connect to the database "${process.env.DB_NAME}": ${err.message}`);
-    console.error('Is MySQL running (XAMPP) and are DB_USER / DB_PASSWORD in .env correct?');
+    console.error(`Cannot connect to the database: ${err.message}`);
+    console.error('Check DATABASE_URL in .env (Supabase → Connect → Session pooler) and your internet connection.');
     process.exit(1);
   });

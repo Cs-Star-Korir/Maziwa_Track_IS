@@ -1,6 +1,6 @@
 -- =====================================================================
 -- MaziwaTrack sample data: batches
--- Database: maziwa-track.  Run AFTER schema.sql, in this order:
+-- PostgreSQL / Supabase. Run AFTER schema.sql (Supabase → SQL Editor), in this order:
 --   01_users.sql -> 02_batches.sql -> 03_payments.sql -> 04_audit_logs.sql
 -- (each file needs the rows from the files before it)
 --
@@ -10,9 +10,8 @@
 -- Batch numbers follow the app's rule: MT-<Kenyan date>-<batch_id as 4 digits>.
 -- Times are stored in UTC (Kenya time is 3 hours ahead).
 -- =====================================================================
-USE `maziwatrack_db`;
-SET NAMES utf8mb4;
-START TRANSACTION;
+SET TIME ZONE 'UTC';   -- the times below are UTC (Kenya time is 3 hours ahead)
+BEGIN;
 
 INSERT INTO batches (batch_id, batch_number, farmer_id, declared_litres, status, delivered_at, grader_id, measured_litres, quality_result, grader_notes, tested_at) VALUES
   (1, 'MT-20261020-0001', 3, 30.50, 'paid', '2026-10-20 05:05:00', 2, 30.00, 'pass', 'Measured less than declared', '2026-10-20 07:23:00'),
@@ -41,11 +40,15 @@ INSERT INTO batches (batch_id, batch_number, farmer_id, declared_litres, status,
   (24, 'MT-20261027-0024', 3, 18.50, 'recorded', '2026-10-27 06:02:00', NULL, NULL, NULL, NULL, NULL),
   (25, 'MT-20261027-0025', 4, 30.00, 'recorded', '2026-10-27 04:02:00', NULL, NULL, NULL, NULL, NULL);
 
+-- The ids above were set by hand, so move the id counter past them.
+-- Without this, the next new row would try id 1 and fail with a duplicate key error.
+SELECT setval(pg_get_serial_sequence('batches', 'batch_id'), (SELECT MAX(batch_id) FROM batches));
+
 COMMIT;
 
 -- Verification (read-only)
 -- Expected: recorded 6, passed 4, rejected 3, paid 12 (total 25)
 SELECT status, COUNT(*) AS batches FROM batches
-GROUP BY status ORDER BY FIELD(status,'recorded','passed','rejected','paid');
+GROUP BY status ORDER BY array_position(ARRAY['recorded','passed','rejected','paid'], status::text);
 SELECT b.batch_number, u.full_name AS farmer, b.declared_litres, b.measured_litres, b.status
 FROM batches b JOIN users u ON u.user_id = b.farmer_id ORDER BY b.batch_id;

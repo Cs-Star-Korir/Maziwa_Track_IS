@@ -42,7 +42,7 @@ function toBatch(r) {
 }
 
 async function findBatch(db, batchNumber) {
-  const [rows] = await db.query(`${BATCH_SELECT} WHERE b.batch_number = ?`, [batchNumber]);
+  const { rows } = await db.query(`${BATCH_SELECT} WHERE b.batch_number = $1`, [batchNumber]);
   return rows[0] ? toBatch(rows[0]) : null;
 }
 
@@ -59,15 +59,15 @@ router.post('/', requireRole('farmer'), async (req, res) => {
     // Insert with a temporary number, then build the real one from the new batch_id,
     // so numbers are always unique and never reused: MT-YYYYMMDD-0007
     const temp = `TMP-${crypto.randomBytes(6).toString('hex')}`;
-    const [r] = await conn.query(
-      'INSERT INTO batches (batch_number, farmer_id, declared_litres) VALUES (?, ?, ?)',
+    const { rows: [b] } = await conn.query(
+      'INSERT INTO batches (batch_number, farmer_id, declared_litres) VALUES ($1, $2, $3) RETURNING batch_id',
       [temp, req.user.user_id, litres]);
-    const [[{ d }]] = await conn.query(
-      "SELECT DATE_FORMAT(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', ?), '%Y%m%d') AS d", [LOCAL_TZ]);
-    const number = `MT-${d}-${String(r.insertId).padStart(4, '0')}`;
-    await conn.query('UPDATE batches SET batch_number = ? WHERE batch_id = ?', [number, r.insertId]);
+    const { rows: [{ d }] } = await conn.query(
+      "SELECT to_char(now() AT TIME ZONE $1, 'YYYYMMDD') AS d", [LOCAL_TZ]);
+    const number = `MT-${d}-${String(b.batch_id).padStart(4, '0')}`;
+    await conn.query('UPDATE batches SET batch_number = $1 WHERE batch_id = $2', [number, b.batch_id]);
     await audit(conn, req.user.user_id, 'RECORD_DELIVERY',
-      { table: 'batches', recordId: r.insertId, newValue: { declared_litres: litres } });
+      { table: 'batches', recordId: b.batch_id, newValue: { declared_litres: litres } });
     return number;
   });
 
@@ -76,8 +76,8 @@ router.post('/', requireRole('farmer'), async (req, res) => {
 
 // GET /api/batches/mine – the logged-in farmer's deliveries, newest first
 router.get('/mine', requireRole('farmer'), async (req, res) => {
-  const [rows] = await pool.query(
-    `${BATCH_SELECT} WHERE b.farmer_id = ? ORDER BY b.delivered_at DESC, b.batch_id DESC`, [req.user.user_id]);
+  const { rows } = await pool.query(
+    `${BATCH_SELECT} WHERE b.farmer_id = $1 ORDER BY b.delivered_at DESC, b.batch_id DESC`, [req.user.user_id]);
   res.json(rows.map(toBatch));
 });
 
@@ -86,6 +86,7 @@ router.get('/mine', requireRole('farmer'), async (req, res) => {
 router.get('/', requireRole('grader', 'admin'), async (req, res) => {
   const where = [];
   const params = [];
+  const p = (value) => { params.push(value); return `$${params.length}`; }; // adds a value, returns its $n
   const status = req.user.role === 'grader' ? 'recorded' : req.query.status;
   const dateRe = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -93,18 +94,19 @@ router.get('/', requireRole('grader', 'admin'), async (req, res) => {
     if (!['recorded', 'passed', 'rejected', 'paid'].includes(status)) {
       return res.status(400).json({ message: 'Unknown status.' });
     }
-    where.push('b.status = ?'); params.push(status);
+    where.push(`b.status = ${p(status)}`);
   }
   for (const [key, op] of [['from', '>='], ['to', '<=']]) {
     if (req.query[key]) {
       if (!dateRe.test(req.query[key])) return res.status(400).json({ message: `"${key}" must be a date like 2026-10-19.` });
-      where.push(`DATE(CONVERT_TZ(b.delivered_at, '+00:00', ?)) ${op} ?`); params.push(LOCAL_TZ, req.query[key]);
+      where.push(`(b.delivered_at AT TIME ZONE ${p(LOCAL_TZ)})::date ${op} ${p(req.query[key])}`);
     }
   }
-  if (req.query.farmer) { where.push('f.full_name LIKE ?'); params.push(`%${req.query.farmer}%`); }
+  // ILIKE ignores upper/lower case, so "wanjiku" finds "Wanjiku"
+  if (req.query.farmer) { where.push(`f.full_name ILIKE ${p(`%${req.query.farmer}%`)}`); }
 
   const order = req.user.role === 'grader' ? 'ASC' : 'DESC'; // graders work oldest first (queue order)
-  const [rows] = await pool.query(
+  const { rows } = await pool.query(
     `${BATCH_SELECT} ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
      ORDER BY b.delivered_at ${order}, b.batch_id ${order}`, params);
   res.json(rows.map(toBatch));
@@ -126,14 +128,14 @@ router.patch('/:batch_number/verify', requireRole('grader'), async (req, res) =>
 
   await withTransaction(async (conn) => {
     // FOR UPDATE locks the row so two graders cannot test the same batch at once
-    const [rows] = await conn.query(
-      'SELECT batch_id, status FROM batches WHERE batch_number = ? FOR UPDATE', [req.params.batch_number]);
+    const { rows } = await conn.query(
+      'SELECT batch_id, status FROM batches WHERE batch_number = $1 FOR UPDATE', [req.params.batch_number]);
     if (!rows.length) throw Object.assign(new Error('Batch not found.'), { status: 404 });
     if (rows[0].status !== 'recorded') throw Object.assign(new Error('This batch has already been tested.'), { status: 409 });
 
     await conn.query(
-      `UPDATE batches SET grader_id = ?, measured_litres = ?, quality_result = ?, grader_notes = ?,
-              tested_at = UTC_TIMESTAMP(), status = ? WHERE batch_id = ?`,
+      `UPDATE batches SET grader_id = $1, measured_litres = $2, quality_result = $3, grader_notes = $4,
+              tested_at = now(), status = $5 WHERE batch_id = $6`,
       [req.user.user_id, measured, quality_result, notes, newStatus, rows[0].batch_id]);
     await audit(conn, req.user.user_id, 'TEST_BATCH', {
       table: 'batches', recordId: rows[0].batch_id,
