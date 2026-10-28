@@ -8,9 +8,8 @@ The app runs on **sample data**, so you do not need the backend or a database.
 ## Before you start
 
 1. Install **Node.js 20.19 or newer** (check with `node -v`).
-2. Pull the latest code, then in a terminal:
+2. Pull the latest code, then in a terminal in the project folder:
    ```
-   cd frontend
    npm install
    npm run dev
    ```

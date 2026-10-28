@@ -26,7 +26,7 @@ Date: 21 Oct 2026. Built from wireframes W1–W5. Nothing has been committed or 
 
 ## Issues and things to decide
 1. **`.env` could not be written** from here (blocked for safety). The app runs without it on sample data.
-   When the backend is ready, copy `.env.example` to `.env` and set `VITE_USE_MOCK=false`.
+   When the backend is ready, use the single `.env` in the project root (copied from the root `.env.example`) with `VITE_USE_MOCK=false`.
 2. **Leftover file `src/components/ComingSoon.jsx`** from the first batch has been removed.
 3. **PDFs use the browser's "Save as PDF".** Reports and receipts show a preview with the logo,
    cooperative name and date, and "Download PDF"/"Print" opens the print dialog. This meets FR5 without

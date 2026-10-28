@@ -11,7 +11,7 @@
 
 CREATE DATABASE IF NOT EXISTS `maziwa-track`
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `maziwa-track`;
+USE `maziwatrack_db`;
 
 -- Everyone who logs in. Only farmers register themselves;
 -- grader and admin accounts are added by the system administrator.

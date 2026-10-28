@@ -1,9 +1,11 @@
-// Starts the MaziwaTrack API:  npm start  (or  npm run dev  to restart on every change)
-require('dotenv').config({ quiet: true });
+// Starts the MaziwaTrack API:  npm start  (or  npm run server  to restart on every change)
+// Settings come from the single .env file in the project root (next to package.json)
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 
 const missing = ['DB_USER', 'DB_NAME', 'JWT_SECRET'].filter((k) => !process.env[k]);
 if (missing.length) {
-  console.error(`Missing settings in .env: ${missing.join(', ')}. Copy .env.example to .env and fill it in.`);
+  console.error(`Missing settings in .env: ${missing.join(', ')}. Copy .env.example to .env in the project root (next to package.json) and fill it in.`);
   process.exit(1);
 }
 

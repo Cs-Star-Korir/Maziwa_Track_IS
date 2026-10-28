@@ -5,12 +5,13 @@ import Layout from '../../components/Layout';
 import StatusBadge from '../../components/StatusBadge';
 import DocHeader from '../../components/DocHeader';
 import { api } from '../../services/api';
-import { litres, ksh, date, todayISO } from '../../utils/format';
+import { litres, ksh, date, todayISO, isMismatch } from '../../utils/format';
 
 const reportTypes = {
   daily: 'Daily collection',
   payments: 'Payments by date range',
   statement: 'Farmer statement',
+  mismatch: 'Litre mismatches',
 };
 
 export default function Reports() {
@@ -32,6 +33,7 @@ export default function Reports() {
         from: form.from, to: form.type === 'daily' ? form.from : form.to, farmer: form.farmer.trim(),
       });
       if (form.type === 'payments') rows = rows.filter((b) => b.payment);
+      if (form.type === 'mismatch') rows = rows.filter(isMismatch);
       setReport({ ...form, rows, generatedAt: new Date().toISOString() });
       api.logReport(reportTypes[form.type]).catch(() => {});
     } catch (err) {
@@ -46,6 +48,10 @@ export default function Reports() {
     : `${date(report.from)} to ${date(report.to)}`);
   const totalLitres = report?.rows.reduce((s, b) => s + Number(b.measured_litres ?? b.declared_litres), 0) || 0;
   const totalPaid = report?.rows.reduce((s, b) => s + (b.payment?.amount || 0), 0) || 0;
+  const totalDeclared = report?.rows.reduce((s, b) => s + Number(b.declared_litres), 0) || 0;
+  const totalMeasured = report?.rows.reduce((s, b) => s + Number(b.measured_litres || 0), 0) || 0;
+  // Difference = measured - declared (negative means less milk arrived than the farmer declared)
+  const diff = (n) => (n > 0 ? '+' : '') + litres(n);
 
   return (
     <Layout title="Reports">
@@ -101,6 +107,39 @@ export default function Reports() {
                 />
                 {report.rows.length === 0 ? (
                   <p className="text-body-secondary mb-0">No records for this period.</p>
+                ) : report.type === 'mismatch' ? (
+                  <div className="table-responsive"><table className="table table-sm small mb-0">
+                    <thead>
+                      <tr>
+                        <th>Batch no.</th><th>Date</th><th>Farmer</th>
+                        <th className="text-end">Declared (L)</th><th className="text-end">Measured (L)</th>
+                        <th className="text-end">Difference (L)</th><th>Status</th><th>Grader notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.rows.map((b) => (
+                        <tr key={b.batch_id}>
+                          <td className="text-nowrap">{b.batch_number}</td>
+                          <td className="text-nowrap">{date(b.delivered_at)}</td>
+                          <td>{b.farmer_name}</td>
+                          <td className="text-end">{litres(b.declared_litres)}</td>
+                          <td className="text-end">{litres(b.measured_litres)}</td>
+                          <td className="text-end text-nowrap">{diff(b.measured_litres - b.declared_litres)}</td>
+                          <td><StatusBadge status={b.status} /></td>
+                          <td>{b.grader_notes || '–'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="fw-bold">
+                        <td colSpan={3}>Total ({report.rows.length} {report.rows.length === 1 ? 'batch' : 'batches'})</td>
+                        <td className="text-end">{litres(totalDeclared)}</td>
+                        <td className="text-end">{litres(totalMeasured)}</td>
+                        <td className="text-end text-nowrap">{diff(totalMeasured - totalDeclared)}</td>
+                        <td colSpan={2} />
+                      </tr>
+                    </tfoot>
+                  </table></div>
                 ) : (
                   <div className="table-responsive"><table className="table table-sm small mb-0">
                     <thead>
@@ -136,7 +175,9 @@ export default function Reports() {
                   </table></div>
                 )}
                 <p className="small text-body-secondary mt-2 mb-0">
-                  Litres are measured litres where the batch has been tested, otherwise declared litres.
+                  {report.type === 'mismatch'
+                    ? 'Batches where the litres measured by the grader differ from what the farmer declared. Difference = measured minus declared.'
+                    : 'Litres are measured litres where the batch has been tested, otherwise declared litres.'}
                 </p>
               </div></div>
             </>
