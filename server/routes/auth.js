@@ -26,8 +26,8 @@ async function requireAuth(req, res, next) {
     const token = req.cookies[COOKIE];
     if (!token) return res.status(401).json({ message: 'Please log in.' });
     const { user_id } = jwt.verify(token, process.env.JWT_SECRET);
-    const [rows] = await pool.query(
-      'SELECT user_id, full_name, email, role, is_active FROM users WHERE user_id = ?', [user_id]);
+    const { rows } = await pool.query(
+      'SELECT user_id, full_name, email, role, is_active FROM users WHERE user_id = $1', [user_id]);
     if (!rows.length || !rows[0].is_active) return res.status(401).json({ message: 'Please log in.' });
     req.user = publicUser(rows[0]);
     next();
@@ -74,14 +74,15 @@ router.post('/register', async (req, res) => {
   const hash = await bcrypt.hash(req.body.password, 10);
 
   try {
-    const [r] = await pool.query(
-      "INSERT INTO users (full_name, email, phone, password_hash, role) VALUES (?, ?, ?, ?, 'farmer')",
+    const { rows: [u] } = await pool.query(
+      `INSERT INTO users (full_name, email, phone, password_hash, role)
+       VALUES ($1, $2, $3, $4, 'farmer') RETURNING user_id`,
       [full_name, email, phone, hash]);
-    await audit(pool, r.insertId, 'REGISTER', { table: 'users', recordId: r.insertId, newValue: { full_name, email } });
-    res.status(201).json({ user: { user_id: r.insertId, full_name, email, role: 'farmer' } });
+    await audit(pool, u.user_id, 'REGISTER', { table: 'users', recordId: u.user_id, newValue: { full_name, email } });
+    res.status(201).json({ user: { user_id: u.user_id, full_name, email, role: 'farmer' } });
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      const which = err.message.includes('phone') ? 'phone number' : 'email';
+    if (err.code === '23505') { // unique rule broken: the email or phone is already used
+      const which = err.constraint === 'uq_users_phone' ? 'phone number' : 'email';
       return res.status(409).json({ message: `An account with this ${which} already exists.` });
     }
     throw err;
@@ -92,7 +93,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', loginLimiter, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
-  const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+  const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
   const user = rows[0];
 
   // Same message whether the email or the password is wrong, so attackers learn nothing.

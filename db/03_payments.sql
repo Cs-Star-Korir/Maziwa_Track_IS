@@ -1,15 +1,14 @@
 -- =====================================================================
 -- MaziwaTrack sample data: payments
--- Database: maziwa-track.  Run AFTER schema.sql, in this order:
+-- PostgreSQL / Supabase. Run AFTER schema.sql (Supabase → SQL Editor), in this order:
 --   01_users.sql -> 02_batches.sql -> 03_payments.sql -> 04_audit_logs.sql
 -- (each file needs the rows from the files before it)
 --
 -- 12 payments, one for each 'paid' batch, at KSh 50 per litre.
 -- References follow the app's rule: PAY-<Kenyan date>-<payment_id as 4 digits>.
 -- =====================================================================
-USE `maziwatrack_db`;
-SET NAMES utf8mb4;
-START TRANSACTION;
+SET TIME ZONE 'UTC';   -- the times below are UTC (Kenya time is 3 hours ahead)
+BEGIN;
 
 INSERT INTO payments (payment_id, batch_id, admin_id, price_per_litre, payment_reference, email_sent, approved_at) VALUES
   (1, 1, 1, 50.00, 'PAY-20261021-0001', TRUE, '2026-10-21 09:19:00'),
@@ -24,6 +23,10 @@ INSERT INTO payments (payment_id, batch_id, admin_id, price_per_litre, payment_r
   (10, 12, 1, 50.00, 'PAY-20261025-0010', TRUE, '2026-10-25 10:24:00'),
   (11, 13, 1, 50.00, 'PAY-20261025-0011', TRUE, '2026-10-25 07:27:00'),
   (12, 14, 1, 50.00, 'PAY-20261025-0012', TRUE, '2026-10-25 06:58:00');
+
+-- The ids above were set by hand, so move the id counter past them.
+-- Without this, the next new row would try id 1 and fail with a duplicate key error.
+SELECT setval(pg_get_serial_sequence('payments', 'payment_id'), (SELECT MAX(payment_id) FROM payments));
 
 COMMIT;
 

@@ -1,15 +1,14 @@
 -- =====================================================================
 -- MaziwaTrack sample data: audit_logs
--- Database: maziwa-track.  Run AFTER schema.sql, in this order:
+-- PostgreSQL / Supabase. Run AFTER schema.sql (Supabase → SQL Editor), in this order:
 --   01_users.sql -> 02_batches.sql -> 03_payments.sql -> 04_audit_logs.sql
 -- (each file needs the rows from the files before it)
 --
 -- 88 entries that match the rows above: farmer registrations, logins,
 -- deliveries, grader tests, payment approvals and one report.
 -- =====================================================================
-USE `maziwatrack_db`;
-SET NAMES utf8mb4;
-START TRANSACTION;
+SET TIME ZONE 'UTC';   -- the times below are UTC (Kenya time is 3 hours ahead)
+BEGIN;
 
 INSERT INTO audit_logs (user_id, action, table_name, record_id, old_value, new_value, created_at) VALUES
   (3, 'REGISTER', 'users', 3, NULL, '{"full_name": "Wanjiku Mwangi", "email": "wanjiku.mwangi@example.com"}', '2026-10-15 07:09:00'),

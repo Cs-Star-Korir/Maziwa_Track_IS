@@ -1,16 +1,15 @@
 -- =====================================================================
 -- MaziwaTrack sample data: users
--- Database: maziwa-track.  Run AFTER schema.sql, in this order:
+-- PostgreSQL / Supabase. Run AFTER schema.sql (Supabase → SQL Editor), in this order:
 --   01_users.sql -> 02_batches.sql -> 03_payments.sql -> 04_audit_logs.sql
 -- (each file needs the rows from the files before it)
 --
--- 25 users: 1 admin, 2 graders, 23 farmers.
+-- 26 users: 1 admin, 2 graders, 23 farmers.
 -- Every account's password is:  Password123
 
 
-USE `maziwatrack_db`;
-SET NAMES utf8mb4;
-START TRANSACTION;
+SET TIME ZONE 'UTC';   -- the times below are UTC (Kenya time is 3 hours ahead)
+BEGIN;
 
 INSERT INTO users (user_id, full_name, email, phone, password_hash, role, created_at) VALUES
   (1, 'Grace Njeri', 'grace.njeri@example.com', '0712 221 427', '$2b$10$lDayvRYtLaZUjb0BlVGTKuvGqdYCK6SePNP2cGwLAE6Do0bku1v5m', 'admin', '2026-10-15 06:23:00'),
@@ -40,9 +39,13 @@ INSERT INTO users (user_id, full_name, email, phone, password_hash, role, create
   (24, 'Atieno Adhiambo', 'atieno.adhiambo@example.com', '0735 863 625', '$2b$10$lDayvRYtLaZUjb0BlVGTKuvGqdYCK6SePNP2cGwLAE6Do0bku1v5m', 'farmer', '2026-10-15 15:12:00'),
   (25, 'Mwende Nzioka', 'mwende.nzioka@example.com', '0736 753 178', '$2b$10$lDayvRYtLaZUjb0BlVGTKuvGqdYCK6SePNP2cGwLAE6Do0bku1v5m', 'farmer', '2026-10-15 15:35:00');
 
+-- The ids above were set by hand, so move the id counter past them.
+-- Without this, the next new row would try id 1 and fail with a duplicate key error.
+SELECT setval(pg_get_serial_sequence('users', 'user_id'), (SELECT MAX(user_id) FROM users));
+
 COMMIT;
 
 -- Verification (read-only)
--- Expected: admin 1, grader 1, farmer 23 (total 25)
+-- Expected: admin 1, grader 2, farmer 23 (total 26)
 SELECT role, COUNT(*) AS users FROM users GROUP BY role;
 SELECT user_id, full_name, email, phone, role FROM users ORDER BY user_id;
