@@ -25,7 +25,12 @@ const query = (filters) => {
 
 const realApi = {
   // auth
-  login: (email, password) => post('/auth/login', { email, password }).then((d) => d.user),
+  // login returns { twoFactor: true } (a code was emailed) or { user } (sample-data mode)
+  login: (email, password) => post('/auth/login', { email, password }),
+  verifyCode: (code) => post('/auth/verify-code', { code }).then((d) => d.user),
+  resendCode: () => post('/auth/resend-code', {}),
+  forgotPassword: (email) => post('/auth/forgot-password', { email }),
+  resetPassword: (token, password) => post('/auth/reset-password', { token, password }),
   register: (form) => post('/auth/register', form).then((d) => d.user),
   me: () => request('/auth/me').then((d) => d.user).catch(() => null),
   logout: () => post('/auth/logout', {}),
@@ -43,6 +48,7 @@ const realApi = {
   // admin
   listBatches: (filters = {}) => request(`/batches${query(filters)}`),
   approvePayment: (batch_number) => post('/payments', { batch_number }),
+  resendReceipt: (reference) => post(`/payments/${reference}/resend`, {}),
   logReport: (type) => post('/reports/log', { type }),
   auditLogs: (filters = {}) => request(`/audit-logs${query(filters)}`),
 };
