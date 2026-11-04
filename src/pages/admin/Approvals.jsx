@@ -30,6 +30,19 @@ export default function Approvals() {
     api.getConfig().then((c) => setPrice(c.price_per_litre)).catch(() => {});
   }, []);
 
+  // Sends the receipt email again for a paid batch whose email failed
+  async function resend(b) {
+    setMessage('');
+    setError('');
+    try {
+      await api.resendReceipt(b.payment.payment_reference);
+      setMessage(`Receipt for ${b.batch_number} sent to the farmer.`);
+      load();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function approve() {
     setBusy(true);
     setError('');
@@ -102,7 +115,12 @@ export default function Approvals() {
                   <td>
                     {b.status === 'passed'
                       ? <button className="btn btn-sm btn-primary" onClick={() => { setMessage(''); setToApprove(b); }}>Approve</button>
-                      : b.payment?.payment_reference || '–'}
+                      : <>
+                          {b.payment?.payment_reference || '–'}
+                          {b.payment && !b.payment.email_sent && (
+                            <button className="btn btn-sm btn-outline-primary ms-2" onClick={() => resend(b)}>Resend receipt</button>
+                          )}
+                        </>}
                   </td>
                 </tr>
               ))}

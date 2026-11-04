@@ -4,7 +4,8 @@ import Layout from '../../components/Layout';
 import { api } from '../../services/api';
 import { dateTime } from '../../utils/format';
 
-const actions = ['LOGIN', 'LOGOUT', 'REGISTER', 'RECORD_DELIVERY', 'TEST_BATCH', 'APPROVE_PAYMENT', 'GENERATE_REPORT'];
+const actions = ['LOGIN', 'LOGOUT', 'REGISTER', 'RECORD_DELIVERY', 'TEST_BATCH', 'APPROVE_PAYMENT', 'GENERATE_REPORT',
+  'RESEND_RECEIPT', 'LOGIN_CODE_SENT', 'LOGIN_CODE_FAILED', 'PASSWORD_RESET_REQUEST', 'PASSWORD_RESET'];
 
 // Turns {status: 'passed'} into "status: passed" for the Old → New column.
 const show = (v) => (v ? Object.entries(v).map(([k, x]) => `${k}: ${x}`).join(', ') : '–');
