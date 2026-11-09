@@ -69,6 +69,10 @@ h1, h2, h3, .h1, .h2, .h3, .h4, .h5, .modal-title, .mt-brand { font-family: var(
 h2, .h2 { font-size: 1.25rem; font-weight: 700; }
 .mt-brand { font-weight: 800; font-size: 1.3rem; }
 
+/* Logo: logo.svg is the blue drawing for light backgrounds. In dark mode it turns white so it
+   stays visible; printed receipts and reports always use the blue (see @media print). */
+[data-bs-theme='dark'] .mt-logo { filter: brightness(0) invert(1); }
+
 /* ---------- Header band (the one bold element) ---------- */
 .mt-band {
   position: relative;
@@ -194,6 +198,7 @@ tr[role='button'] { cursor: pointer; }
   .print-area .table { --bs-table-color: #000; --bs-table-bg: #fff; }
   .print-area .table > thead th { background: #fff; }
   .modal-backdrop, .no-print { display: none !important; }
+  .mt-logo { filter: none !important; }
   /* a receipt opened in a pop-up prints at the top of the page, not in the middle */
   .modal, .modal-dialog, .modal-content, .modal-body, .mt-sheet, .mt-sheet-wrap {
     position: static !important; transform: none !important; margin: 0 !important;

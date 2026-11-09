@@ -18,7 +18,8 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-md mt-navbar" data-bs-theme="dark">
       <div className="container">
         <span className="navbar-brand d-flex align-items-center gap-2">
-          <img src="/logo.svg" alt="" width="30" height="30" />
+          {/* white version of the logo: it sits on the blue band */}
+          <img src="/logo-white.svg" alt="" width="30" height="30" />
           <span className="mt-brand">MaziwaTrack</span>
           {user && (
             <span className="mt-who d-none d-md-inline">{roleLabel[user.role]}: {user.full_name}</span>
