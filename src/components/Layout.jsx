@@ -1,11 +1,14 @@
 // Page frame for logged-in screens: a blue header band (menu + page title) that ends in a
 // milk-coloured wave, then the page content on a white sheet that overlaps the band.
+import { useTranslation } from 'react-i18next';
 import Navbar from './Navbar';
+import { locale } from '../i18n';
 
 const today = () =>
-  new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  new Date().toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
 export default function Layout({ title, subtitle, children }) {
+  useTranslation(); // re-render the date when the language changes
   return (
     <>
       <header className="mt-band no-print">

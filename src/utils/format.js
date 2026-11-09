@@ -1,4 +1,6 @@
 // Helpers so numbers and dates look the same on every screen.
+// Dates follow the chosen language (en-GB or sw-KE); money always uses en-KE digits.
+import { locale } from '../i18n';
 
 export const litres = (n) => (n == null ? '–' : Number(n).toFixed(2));
 
@@ -6,10 +8,10 @@ export const ksh = (n) =>
   'KSh ' + Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const date = (iso) =>
-  iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
+  iso ? new Date(iso).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
 
 export const dateTime = (iso) =>
-  iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '–';
+  iso ? new Date(iso).toLocaleString(locale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '–';
 
 // Today's date as YYYY-MM-DD in the user's own time zone (toISOString would give the UTC date,
 // which is still "yesterday" in Kenya between midnight and 3 a.m.).

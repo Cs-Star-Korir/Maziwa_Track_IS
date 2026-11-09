@@ -1,6 +1,7 @@
 // Appearance control: Light / System / Dark.
 // "System" (the default) follows the computer or phone setting and changes with it.
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const media = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -33,9 +34,8 @@ const icons = {
   ),
 };
 
-const labels = { light: 'Light', system: 'Match my device', dark: 'Dark' };
-
 export default function ThemeToggle() {
+  const { t } = useTranslation();
   const [choice, setChoice] = useState(readChoice);
 
   // While on "System", switch automatically when the device switches.
@@ -53,10 +53,10 @@ export default function ThemeToggle() {
   }
 
   return (
-    <div className="theme-picker" role="radiogroup" aria-label="Appearance">
+    <div className="theme-picker" role="radiogroup" aria-label={t('theme.label')}>
       {['light', 'system', 'dark'].map((c) => (
         <button key={c} type="button" role="radio" aria-checked={choice === c}
-          title={labels[c]} aria-label={labels[c]} onClick={() => pick(c)}>
+          title={t(`theme.${c}`)} aria-label={t(`theme.${c}`)} onClick={() => pick(c)}>
           {icons[c]}
         </button>
       ))}
