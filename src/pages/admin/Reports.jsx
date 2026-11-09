@@ -1,20 +1,19 @@
 // W5 – Reports (FR5). Shows a preview with logo, cooperative name and date,
 // then "Download PDF" opens the browser's print dialog (choose "Save as PDF").
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Layout from '../../components/Layout';
 import StatusBadge from '../../components/StatusBadge';
 import DocHeader from '../../components/DocHeader';
 import { api } from '../../services/api';
 import { litres, ksh, date, todayISO, isMismatch } from '../../utils/format';
 
-const reportTypes = {
-  daily: 'Daily collection',
-  payments: 'Payments by date range',
-  statement: 'Farmer statement',
-  mismatch: 'Litre mismatches',
-};
+// Report names are in src/i18n (reports.type.*).
+const reportTypes = ['daily', 'payments', 'statement', 'mismatch'];
 
 export default function Reports() {
+  const { t, i18n } = useTranslation();
+  const typeName = (k) => t(`reports.type.${k}`);
   const [form, setForm] = useState({ type: 'daily', from: todayISO(), to: todayISO(), farmer: '' });
   const [report, setReport] = useState(null);
   const [error, setError] = useState('');
@@ -25,8 +24,8 @@ export default function Reports() {
   async function generate(e) {
     e.preventDefault();
     setError('');
-    if (form.from > form.to) { setError('"From" date must be before "To" date.'); return; }
-    if (form.type === 'statement' && !form.farmer.trim()) { setError('Enter a farmer name for a farmer statement.'); return; }
+    if (form.from > form.to) { setError(t('reports.errDates')); return; }
+    if (form.type === 'statement' && !form.farmer.trim()) { setError(t('reports.errFarmer')); return; }
     setBusy(true);
     try {
       let rows = await api.listBatches({
@@ -35,7 +34,8 @@ export default function Reports() {
       if (form.type === 'payments') rows = rows.filter((b) => b.payment);
       if (form.type === 'mismatch') rows = rows.filter(isMismatch);
       setReport({ ...form, rows, generatedAt: new Date().toISOString() });
-      api.logReport(reportTypes[form.type]).catch(() => {});
+      // the audit log stays in English whatever language is on screen
+      api.logReport(i18n.getFixedT('en')(`reports.type.${form.type}`)).catch(() => {});
     } catch (err) {
       setError(err.message);
     } finally {
@@ -45,7 +45,9 @@ export default function Reports() {
 
   const period = report && (report.type === 'daily'
     ? date(report.from)
-    : `${date(report.from)} to ${date(report.to)}`);
+    : t('reports.period', { from: date(report.from), to: date(report.to) }));
+  // "Ripoti ya makusanyo ya siku": in Kiswahili the report name follows "Ripoti ya" in lower case
+  const titleType = (k) => (i18n.language === 'sw' ? typeName(k).toLowerCase() : typeName(k));
   const totalLitres = report?.rows.reduce((s, b) => s + Number(b.measured_litres ?? b.declared_litres), 0) || 0;
   const totalPaid = report?.rows.reduce((s, b) => s + (b.payment?.amount || 0), 0) || 0;
   const totalDeclared = report?.rows.reduce((s, b) => s + Number(b.declared_litres), 0) || 0;
@@ -54,66 +56,67 @@ export default function Reports() {
   const diff = (n) => (n > 0 ? '+' : '') + litres(n);
 
   return (
-    <Layout title="Reports">
+    <Layout title={t('reports.title')}>
       <div className="row g-4">
         <div className="col-lg-4 no-print">
-          <h2 className="mb-3">Choose a report</h2>
+          <h2 className="mb-3">{t('reports.choose')}</h2>
           <form onSubmit={generate} noValidate>
             <div className="mb-2">
-              <label className="form-label small" htmlFor="type">Report</label>
+              <label className="form-label small" htmlFor="type">{t('reports.report')}</label>
               <select id="type" name="type" className="form-select" value={form.type} onChange={update}>
-                {Object.entries(reportTypes).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                {reportTypes.map((k) => <option key={k} value={k}>{typeName(k)}</option>)}
               </select>
             </div>
             <div className="row g-2 mb-2">
               <div className="col">
-                <label className="form-label small" htmlFor="from">{form.type === 'daily' ? 'Date' : 'From'}</label>
+                <label className="form-label small" htmlFor="from">{form.type === 'daily' ? t('common.date') : t('reports.from')}</label>
                 <input id="from" name="from" type="date" className="form-control" value={form.from} onChange={update} />
               </div>
               {form.type !== 'daily' && (
                 <div className="col">
-                  <label className="form-label small" htmlFor="to">To</label>
+                  <label className="form-label small" htmlFor="to">{t('reports.to')}</label>
                   <input id="to" name="to" type="date" className="form-control" value={form.to} onChange={update} />
                 </div>
               )}
             </div>
             <div className="mb-3">
               <label className="form-label small" htmlFor="farmerR">
-                Farmer {form.type === 'statement' ? '' : '(optional)'}
+                {form.type === 'statement' ? t('reports.farmer') : t('reports.farmerOptional')}
               </label>
               <input id="farmerR" name="farmer" className="form-control" value={form.farmer} onChange={update} />
             </div>
             {error && <div className="alert alert-danger py-2">{error}</div>}
-            <button className="btn btn-primary w-100" disabled={busy}>{busy ? 'Generating…' : 'Generate report'}</button>
+            <button className="btn btn-primary w-100" disabled={busy}>{busy ? t('reports.submitting') : t('reports.submit')}</button>
           </form>
         </div>
 
         <div className="col-lg-8">
           {!report ? (
             <div className="card no-print"><div className="card-body text-body-secondary">
-              Choose a report and dates, then click Generate report to see a preview.
+              {t('reports.previewHint')}
             </div></div>
           ) : (
             <>
               <div className="d-flex justify-content-end mb-2 no-print">
                 <button className="btn btn-outline-primary" onClick={() => window.print()}>
-                  <i className="fa-solid fa-file-pdf me-1" /> Download PDF
+                  <i className="fa-solid fa-file-pdf me-1" /> {t('reports.download')}
                 </button>
               </div>
               <div className="card print-area"><div className="card-body">
                 <DocHeader
-                  title={`${reportTypes[report.type]} Report, ${period}`}
-                  subtitle={`Generated ${date(report.generatedAt)}${report.farmer ? ` · Farmer: ${report.farmer}` : ''}`}
+                  title={t('reports.docTitle', { type: titleType(report.type), period })}
+                  subtitle={t('reports.generated', { date: date(report.generatedAt) })
+                    + (report.farmer ? ` · ${t('reports.farmerFilter', { name: report.farmer })}` : '')}
                 />
                 {report.rows.length === 0 ? (
-                  <p className="text-body-secondary mb-0">No records for this period.</p>
+                  <p className="text-body-secondary mb-0">{t('reports.noRecords')}</p>
                 ) : report.type === 'mismatch' ? (
                   <div className="table-responsive"><table className="table table-sm small mb-0">
                     <thead>
                       <tr>
-                        <th>Batch no.</th><th>Date</th><th>Farmer</th>
-                        <th className="text-end">Declared (L)</th><th className="text-end">Measured (L)</th>
-                        <th className="text-end">Difference (L)</th><th>Status</th><th>Grader notes</th>
+                        <th>{t('col.batchNo')}</th><th>{t('col.date')}</th><th>{t('col.farmer')}</th>
+                        <th className="text-end">{t('col.declaredL')}</th><th className="text-end">{t('col.measuredL')}</th>
+                        <th className="text-end">{t('col.differenceL')}</th><th>{t('col.status')}</th><th>{t('col.graderNotes')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -132,7 +135,7 @@ export default function Reports() {
                     </tbody>
                     <tfoot>
                       <tr className="fw-bold">
-                        <td colSpan={3}>Total ({report.rows.length} {report.rows.length === 1 ? 'batch' : 'batches'})</td>
+                        <td colSpan={3}>{t('reports.totalBatches', { count: report.rows.length })}</td>
                         <td className="text-end">{litres(totalDeclared)}</td>
                         <td className="text-end">{litres(totalMeasured)}</td>
                         <td className="text-end text-nowrap">{diff(totalMeasured - totalDeclared)}</td>
@@ -144,9 +147,9 @@ export default function Reports() {
                   <div className="table-responsive"><table className="table table-sm small mb-0">
                     <thead>
                       <tr>
-                        <th>Batch no.</th>{report.type !== 'daily' && <th>Date</th>}<th>Farmer</th>
-                        <th className="text-end">Litres</th><th>Status</th>
-                        {report.type !== 'daily' && <><th>Payment ref</th><th className="text-end">Amount</th></>}
+                        <th>{t('col.batchNo')}</th>{report.type !== 'daily' && <th>{t('col.date')}</th>}<th>{t('col.farmer')}</th>
+                        <th className="text-end">{t('col.litres')}</th><th>{t('col.status')}</th>
+                        {report.type !== 'daily' && <><th>{t('col.paymentRef')}</th><th className="text-end">{t('col.amount')}</th></>}
                       </tr>
                     </thead>
                     <tbody>
@@ -166,7 +169,7 @@ export default function Reports() {
                     </tbody>
                     <tfoot>
                       <tr className="fw-bold">
-                        <td colSpan={report.type === 'daily' ? 2 : 3}>Total</td>
+                        <td colSpan={report.type === 'daily' ? 2 : 3}>{t('reports.total')}</td>
                         <td className="text-end">{litres(totalLitres)}</td>
                         <td />
                         {report.type !== 'daily' && <><td /><td className="text-end text-nowrap">{ksh(totalPaid)}</td></>}
@@ -176,8 +179,8 @@ export default function Reports() {
                 )}
                 <p className="small text-body-secondary mt-2 mb-0">
                   {report.type === 'mismatch'
-                    ? 'Batches where the litres measured by the grader differ from what the farmer declared. Difference = measured minus declared.'
-                    : 'Litres are measured litres where the batch has been tested, otherwise declared litres.'}
+                    ? t('reports.noteMismatch')
+                    : t('reports.noteLitres')}
                 </p>
               </div></div>
             </>

@@ -1,23 +1,25 @@
 // W1 – Register (farmers only).
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AuthCard from '../components/AuthCard';
 import { api } from '../services/api';
 
 const empty = { full_name: '', phone: '', email: '', password: '', confirm: '' };
 
-// Returns an error message per field, or an empty object if everything is valid.
+// Returns a translation key per field, or an empty object if everything is valid.
 function validate(f) {
   const errors = {};
-  if (f.full_name.trim().length < 3) errors.full_name = 'Enter your full name.';
-  if (!/^0[17]\d{8}$/.test(f.phone.replace(/\s/g, ''))) errors.phone = 'Enter a phone number like 0712 345 678.';
-  if (!/^\S+@\S+\.\S+$/.test(f.email)) errors.email = 'Enter a valid email address.';
-  if (f.password.length < 8) errors.password = 'Password must be at least 8 characters.';
-  if (f.confirm !== f.password) errors.confirm = 'Passwords do not match.';
+  if (f.full_name.trim().length < 3) errors.full_name = 'register.errFullName';
+  if (!/^0[17]\d{8}$/.test(f.phone.replace(/\s/g, ''))) errors.phone = 'register.errPhone';
+  if (!/^\S+@\S+\.\S+$/.test(f.email)) errors.email = 'register.errEmail';
+  if (f.password.length < 8) errors.password = 'register.errPassword';
+  if (f.confirm !== f.password) errors.confirm = 'register.errConfirm';
   return errors;
 }
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState({});
@@ -56,30 +58,30 @@ export default function Register() {
       <input id={name} name={name} type={type} placeholder={placeholder}
         className={`form-control ${errors[name] ? 'is-invalid' : ''}`}
         value={form[name]} onChange={update} />
-      {errors[name] && <div className="invalid-feedback">{errors[name]}</div>}
+      {errors[name] && <div className="invalid-feedback">{t(errors[name])}</div>}
     </div>
   );
 
   return (
-    <AuthCard title="Register (farmers only)">
+    <AuthCard title={t('register.title')}>
       <form onSubmit={handleSubmit} noValidate>
-        {field('full_name', 'Full name', 'text', 'Wanjiku Mwangi')}
-        {field('phone', 'Phone', 'tel', '0712 345 678')}
-        {field('email', 'Email', 'email', 'wanjiku@example.com')}
-        {field('password', 'Password', 'password')}
-        {field('confirm', 'Confirm password', 'password')}
+        {field('full_name', t('register.fullName'), 'text', 'Wanjiku Mwangi')}
+        {field('phone', t('register.phone'), 'tel', '0712 345 678')}
+        {field('email', t('register.email'), 'email', 'wanjiku@example.com')}
+        {field('password', t('register.password'), 'password')}
+        {field('confirm', t('register.confirm'), 'password')}
 
         {serverError && <div className="alert alert-danger py-2">{serverError}</div>}
 
         <button type="submit" className="btn btn-primary w-100" disabled={busy}>
-          {busy ? 'Creating account…' : 'Create account'}
+          {busy ? t('register.submitting') : t('register.submit')}
         </button>
       </form>
 
       <p className="small text-body-secondary mt-3 mb-1">
-        Grader and admin accounts are created by the system administrator.
+        {t('register.staffNote')}
       </p>
-      <div className="small">Already registered? <Link to="/login">Log in</Link></div>
+      <div className="small">{t('register.already')} <Link to="/login">{t('register.logIn')}</Link></div>
     </AuthCard>
   );
 }
