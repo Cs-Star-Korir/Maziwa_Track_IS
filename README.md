@@ -78,6 +78,7 @@
 | Database | PostgreSQL, hosted on Supabase, accessed with `pg` |
 | Auth & security | jsonwebtoken, bcryptjs, cookie-parser, helmet, cors, express-rate-limit |
 | Email | Nodemailer over SMTP (Mailtrap for testing, Gmail for demos) |
+| Testing | Vitest, React Testing Library, jsdom, supertest |
 | Tooling | nodemon, oxlint, dotenv |
 
 Frontend and backend live in one package with a single `.env` file.
@@ -87,6 +88,7 @@ Frontend and backend live in one package with a single `.env` file.
 - **Node.js 20.19 or newer** (check with `node -v`) and npm.
 - **A PostgreSQL database.** The project is set up for [Supabase](https://supabase.com); a local PostgreSQL server also works.
 - **An SMTP account** for emails (optional for local development; see [Emails without SMTP](#emails-without-smtp)).
+- **A second, empty PostgreSQL database** if you want to run the API tests (optional; see [Testing](#testing)).
 - Git.
 
 ## Installation and setup
@@ -168,6 +170,9 @@ Open <http://localhost:5173> and log in. To confirm that the API can reach the d
 | `npm run build` | Builds the frontend into `dist/` |
 | `npm run preview` | Serves the built frontend locally |
 | `npm run lint` | Runs oxlint |
+| `npm test` | Runs every automated test once (see [Testing](#testing)) |
+| `npm run test:watch` | Re-runs the tests whenever a file changes |
+| `npm run test:unit` / `test:ui` / `test:api` | Runs one group of tests |
 
 ### A typical flow
 
@@ -213,6 +218,7 @@ All settings live in one `.env` file in the project root. Only settings starting
 | `SMTP_USER` / `SMTP_PASS` | No | – | SMTP login. For Gmail use an App Password. |
 | `MAIL_FROM` | No | – | Sender shown on emails, e.g. `MaziwaTrack <no-reply@maziwatrack.co.ke>`. |
 | `APP_URL` | No | `http://localhost:5173` | Site address used in password-reset links. Set it to your site's address when deployed. |
+| `TEST_DATABASE_URL` | No | – | A **separate, empty** database for the API tests. They delete all its data, so never use the database in `DATABASE_URL`. Leave empty to skip the API tests. |
 | `VITE_API_URL` | No | `http://localhost:5000/api` | API address used by the frontend. |
 | `VITE_USE_MOCK` | No | sample data on | `false` calls the real API. Any other value, or leaving it out, uses sample data. |
 
@@ -245,6 +251,12 @@ All routes are served under `/api` (see [`server/apis.js`](server/apis.js)). Req
 
 ```text
 .
+├── __tests__/            # automated tests (see Testing)
+│   ├── unit/             # logic: formatting, translations, sample data, email, access checks
+│   ├── ui/               # React screens in a simulated browser
+│   ├── api/              # the Express API against a test database
+│   ├── helpers/          # shared test code, including a fake email server
+│   └── setup/            # runs before the tests: test settings and database tables
 ├── db/                   # schema.sql + seed files (01–04), run in Supabase SQL Editor
 ├── public/               # logos and favicon
 ├── server/               # Express API
@@ -267,27 +279,69 @@ All routes are served under `/api` (see [`server/apis.js`](server/apis.js)). Req
 ├── .env.example          # settings template
 ├── index.html
 ├── package.json
-└── vite.config.js
+├── vite.config.js
+└── vitest.config.mjs     # test settings: the unit, ui and api groups
 ```
 
 ## Testing
 
-The project does not have an automated test suite yet. It is checked as follows:
+The automated tests live in [`__tests__/`](__tests__) and run with [Vitest](https://vitest.dev). There are **185 tests** in three groups:
+
+| Group | Folder | Tests | What it checks | Needs |
+|---|---|---|---|---|
+| `unit` | [`__tests__/unit`](__tests__/unit) | 47 | Number and date formatting, English/Kiswahili files (same keys, same placeholders, every key used on screen exists), translated server messages, sample-data rules, email helpers, role checks | Nothing |
+| `ui` | [`__tests__/ui`](__tests__/ui) | 43 | The login (with 2FA code), register, farmer, grader and approvals screens, page access per role, the language and appearance switches. The API is replaced by a fake, so no server is needed. | Nothing |
+| `api` | [`__tests__/api`](__tests__/api) | 95 | The real Express API and database: registration, login codes, password reset, deliveries, grading, payments and receipts, reports, the audit log, role restrictions and rate limits | A test database |
+
+### Running the tests
 
 ```bash
-npm run lint      # static checks with oxlint
-npm run build     # confirms the frontend compiles
+npm test               # all groups
+npm run test:watch     # keeps running and re-tests on every save
+npm run test:unit      # one group only (also test:ui and test:api)
+npx vitest run __tests__/api/payments.test.js   # one file
 ```
 
-- **Health check:** with the server running, <http://localhost:5000/api/health> should report `"database":"up"`.
-- **Manual UI test guide:** [`FRONTEND_TEST.md`](FRONTEND_TEST.md) gives step-by-step checks with the expected result for each screen. It uses sample-data mode, so no backend is needed.
-- **End-to-end testing:** run the app against a real database and a mail testing inbox such as Mailtrap, and walk through the farmer → grader → admin flow, including login codes, receipts and password reset.
+Without a test database, the `unit` and `ui` groups still run and the `api` group is skipped with a message.
+
+### Setting up the test database (for the `api` group)
+
+The API tests **empty every table** before each test file, so they need their own database. Then add its address to `.env`:
+
+```dotenv
+TEST_DATABASE_URL=postgresql://<user>:<password>@localhost:5432/maziwatrack_test
+```
+
+- **Local PostgreSQL:** create an empty database, for example with `createdb maziwatrack_test`.
+- **Supabase:** create a second, free project just for tests and use its Session pooler address, as for `DATABASE_URL`.
+
+The tables are created automatically from [`db/schema.sql`](db/schema.sql), and every test file starts with the seeded users from [`db/01_users.sql`](db/01_users.sql). Two safety checks stop the tests from touching real data:
+- they refuse to run if `TEST_DATABASE_URL` is the same as `DATABASE_URL`;
+- they refuse to run if the test database has any user without an `@example.com` email address.
+
+### How the tests work
+
+- **Emails:** the API tests start a small fake email server ([`__tests__/helpers/smtpServer.js`](__tests__/helpers/smtpServer.js)). The app sends to it as it would to Mailtrap or Gmail, so the tests read real login codes, receipts and reset links. They can also make it refuse emails, to check that a payment is still saved when the receipt email fails. No email leaves your computer, and your `SMTP_*` settings are not used.
+- **Settings:** tests use fixed settings (a test `JWT_SECRET`, price KSh 50, Nairobi time zone), set in [`__tests__/setup/api.js`](__tests__/setup/api.js). Your `.env` is only read for `TEST_DATABASE_URL`.
+- **Test plan IDs:** test names start with the case ID from the end-to-end test plan where one exists (for example `A4`, `P5`, `X8`), so automated results can be matched to the documentation.
+
+### Writing a new test
+
+1. Put it in the matching folder, named `<something>.test.js` (or `.test.jsx` for screens).
+2. For API tests, use the helpers in [`__tests__/helpers/api.js`](__tests__/helpers/api.js): `resetDb()`, `loginAs('farmer')`, `recordDelivery()`, `testBatch()`, `lastMailTo()`.
+3. For screens, use `renderAt()` and `fakeApi()` from [`__tests__/helpers/ui.jsx`](__tests__/helpers/ui.jsx).
+4. Login and reset requests are rate-limited per test file (10 failed logins, 20 code checks, 5 reset requests per 15 minutes). If a file needs more, split it into two files.
+
+### Other checks
+
+- `npm run lint` runs oxlint, and `npm run build` confirms the frontend compiles.
+- With the server running, <http://localhost:5000/api/health> should report `"database":"up"`.
 
 ## Contributing
 
 1. Create a branch from `main` for each change, for example `feat/kiswahili-translation`.
 2. Keep commits focused, with a short prefix describing the change, for example `Feature: English/Kiswahili language toggle`.
-3. Before opening a pull request, run `npm run lint` and `npm run build`, and test the screens you changed.
+3. Before opening a pull request, run `npm run lint`, `npm test` and `npm run build`. Add or update tests for what you changed.
 4. Open a pull request into `main` and describe what changed and how you tested it. Another team member reviews it before merging.
 5. When adding on-screen text, add the same key to both [`src/i18n/en.json`](src/i18n/en.json) and [`src/i18n/sw.json`](src/i18n/sw.json).
 6. Never commit `.env`, database passwords or SMTP credentials.
