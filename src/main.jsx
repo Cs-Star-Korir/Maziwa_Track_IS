@@ -8,6 +8,7 @@ import '@fontsource/atkinson-hyperlegible/400.css'; // body font (bundled, works
 import '@fontsource/atkinson-hyperlegible/700.css';
 import '@fontsource-variable/bricolage-grotesque'; // heading font
 import './styles/main.css';
+import './i18n'; // English / Kiswahili
 import { AuthProvider } from './context/AuthContext';
 import App from './App';
 

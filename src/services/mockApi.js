@@ -72,7 +72,23 @@ export const mockApi = {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(safeUser(u)));
     log(u.user_id, 'LOGIN');
     save();
-    return safeUser(u);
+    return { user: safeUser(u) }; // sample-data mode skips the emailed 2FA code
+  },
+
+  // Sample-data versions of the email features (no emails are sent in this mode)
+  async verifyCode() {
+    throw new Error('Login codes are only used with the real backend.');
+  },
+  async resendCode() {
+    throw new Error('Login codes are only used with the real backend.');
+  },
+  async forgotPassword() {
+    await wait();
+    return { message: "If an account exists for that email, we've sent a link to reset your password." };
+  },
+  async resetPassword() {
+    await wait();
+    throw new Error('Password reset needs the real backend (sample-data mode sends no emails).');
   },
 
   async register({ full_name, phone, email, password }) {
@@ -185,6 +201,17 @@ export const mockApi = {
     log(u.user_id, 'APPROVE_PAYMENT', 'batches', b.batch_id, { status: 'passed' }, { status: 'paid', payment_reference: p.payment_reference });
     save();
     return withDetails(b);
+  },
+
+  async resendReceipt(payment_reference) {
+    await wait();
+    const u = requireRole('admin');
+    const p = db.payments.find((x) => x.payment_reference === payment_reference);
+    if (!p) throw new Error('Payment not found.');
+    p.email_sent = true;
+    log(u.user_id, 'RESEND_RECEIPT', 'batches', p.batch_id, null, { payment_reference });
+    save();
+    return withDetails(db.batches.find((b) => b.batch_id === p.batch_id));
   },
 
   async logReport(type) {

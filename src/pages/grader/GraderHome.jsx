@@ -1,5 +1,6 @@
 // W3 – Grader screen: batches to test, test batch (FR3).
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Layout from '../../components/Layout';
 import { api } from '../../services/api';
 import { litres } from '../../utils/format';
@@ -7,6 +8,7 @@ import { litres } from '../../utils/format';
 const emptyResult = { measured: '', quality: 'pass', notes: '' };
 
 export default function GraderHome() {
+  const { t } = useTranslation();
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -42,7 +44,7 @@ export default function GraderHome() {
     e.preventDefault();
     setError('');
     if (!result.measured || Number.isNaN(measured) || measured <= 0) {
-      setError('Measured litres must be a number greater than 0');
+      setError(t('grader.errMeasured'));
       return;
     }
     setBusy(true);
@@ -52,7 +54,7 @@ export default function GraderHome() {
         quality_result: result.quality,
         grader_notes: result.notes.trim(),
       });
-      setMessage(`Saved. Batch ${b.batch_number} marked as ${b.status === 'passed' ? 'Passed' : 'Rejected'}.`);
+      setMessage(t('grader.saved', { number: b.batch_number, status: t(`status.${b.status}`) }));
       setSelected(null);
       load();
     } catch (err) {
@@ -63,24 +65,24 @@ export default function GraderHome() {
   }
 
   return (
-    <Layout title="Batches to test">
+    <Layout title={t('grader.title')}>
       <div className="row g-4">
         {/* Batches to test */}
         <div className="col-lg-6">
-          <h2 className="mb-3">Waiting for testing</h2>
-          <input type="search" className="form-control mb-3" placeholder="Search batch number or farmer"
+          <h2 className="mb-3">{t('grader.waiting')}</h2>
+          <input type="search" className="form-control mb-3" placeholder={t('grader.search')}
             value={search} onChange={(e) => setSearch(e.target.value)} />
           {message && <div className="alert alert-success py-2">{message}</div>}
           {loading ? (
             <div className="spinner-border" />
           ) : shown.length === 0 ? (
             <p className="text-body-secondary">
-              {batches.length === 0 ? 'No batches waiting to be tested.' : 'No batch matches your search.'}
+              {batches.length === 0 ? t('grader.noneWaiting') : t('grader.noMatch')}
             </p>
           ) : (
             <div className="table-responsive">
               <table className="table table-hover align-middle">
-                <thead><tr><th>Batch no.</th><th>Farmer</th><th className="text-end">Declared (L)</th></tr></thead>
+                <thead><tr><th>{t('col.batchNo')}</th><th>{t('col.farmer')}</th><th className="text-end">{t('col.declaredL')}</th></tr></thead>
                 <tbody>
                   {shown.map((b) => (
                     <tr key={b.batch_id} role="button" onClick={() => select(b)}
@@ -100,51 +102,50 @@ export default function GraderHome() {
         <div className="col-lg-6">
           {!selected ? (
             <div className="card"><div className="card-body text-body-secondary">
-              Select a batch from the list to test it.
+              {t('grader.selectPrompt')}
             </div></div>
           ) : (
             <div className="card">
               <div className="card-body">
-                <h2 className="mb-2">Test batch {selected.batch_number}</h2>
-                <p className="mb-3">Farmer: {selected.farmer_name}</p>
+                <h2 className="mb-2">{t('grader.testBatch', { number: selected.batch_number })}</h2>
+                <p className="mb-3">{t('grader.farmerName', { name: selected.farmer_name })}</p>
                 <form onSubmit={handleSave} noValidate>
                   <div className="mb-3">
-                    <label className="form-label" htmlFor="declaredRO">Declared litres (read only)</label>
+                    <label className="form-label" htmlFor="declaredRO">{t('grader.declaredRO')}</label>
                     <input id="declaredRO" className="form-control" value={litres(selected.declared_litres)} readOnly disabled />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label" htmlFor="measured">Measured litres</label>
+                    <label className="form-label" htmlFor="measured">{t('grader.measured')}</label>
                     <input id="measured" type="number" min="0" step="0.01" className="form-control"
                       value={result.measured} onChange={(e) => setResult({ ...result, measured: e.target.value })} autoFocus />
                   </div>
                   <div className="mb-3">
-                    <div className="form-label">Quality</div>
+                    <div className="form-label">{t('grader.quality')}</div>
                     {['pass', 'reject'].map((q) => (
                       <div className="form-check form-check-inline" key={q}>
                         <input className="form-check-input" type="radio" name="quality" id={q} value={q}
                           checked={result.quality === q} onChange={() => setResult({ ...result, quality: q })} />
-                        <label className="form-check-label" htmlFor={q}>{q === 'pass' ? 'Pass' : 'Reject'}</label>
+                        <label className="form-check-label" htmlFor={q}>{t(`quality.${q}`)}</label>
                       </div>
                     ))}
                   </div>
                   <div className="mb-3">
-                    <label className="form-label" htmlFor="notes">Notes</label>
-                    <textarea id="notes" rows="3" className="form-control" placeholder="Optional notes about quality"
+                    <label className="form-label" htmlFor="notes">{t('grader.notes')}</label>
+                    <textarea id="notes" rows="3" className="form-control" placeholder={t('grader.notesPlaceholder')}
                       value={result.notes} onChange={(e) => setResult({ ...result, notes: e.target.value })} />
                   </div>
 
                   {mismatch && (
                     <div className="alert alert-warning py-2">
                       <i className="fa-solid fa-triangle-exclamation me-1" />
-                      Measured litres ({litres(measured)} L) differ from declared litres ({litres(selected.declared_litres)} L).
-                      The admin will see this batch flagged.
+                      {t('grader.mismatch', { measured: litres(measured), declared: litres(selected.declared_litres) })}
                     </div>
                   )}
                   {error && <div className="alert alert-danger py-2">{error}</div>}
 
                   <div className="d-flex gap-2">
-                    <button className="btn btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Save result'}</button>
-                    <button type="button" className="btn btn-outline-secondary" onClick={() => setSelected(null)}>Cancel</button>
+                    <button className="btn btn-primary" disabled={busy}>{busy ? t('common.saving') : t('grader.submit')}</button>
+                    <button type="button" className="btn btn-outline-secondary" onClick={() => setSelected(null)}>{t('common.cancel')}</button>
                   </div>
                 </form>
               </div>

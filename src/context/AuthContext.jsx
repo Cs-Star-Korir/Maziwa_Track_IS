@@ -13,8 +13,17 @@ export function AuthProvider({ children }) {
     api.me().then(setUser).finally(() => setLoading(false));
   }, []);
 
+  // Step 1: email + password. Returns { twoFactor: true } when a code was emailed,
+  // or { user } when the user is logged in straight away (sample-data mode).
   async function login(email, password) {
-    const u = await api.login(email, password);
+    const d = await api.login(email, password);
+    if (d.user) setUser(d.user);
+    return d;
+  }
+
+  // Step 2: the 6-digit code from the email. Logs the user in.
+  async function verifyCode(code) {
+    const u = await api.verifyCode(code);
     setUser(u);
     return u;
   }
@@ -25,7 +34,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyCode, logout }}>
       {children}
     </AuthContext.Provider>
   );

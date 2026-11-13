@@ -1,56 +1,47 @@
 // W1 – Help. Shown inside the normal layout when logged in, or as a card when logged out.
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AuthCard from '../components/AuthCard';
 import Layout from '../components/Layout';
 import { useAuth, homeFor } from '../context/AuthContext';
 
+// Translation keys for each role's steps (text in src/i18n/en.json and sw.json, under "help").
 const steps = {
-  Farmers: [
-    'Log in.',
-    'Click Record delivery and enter the litres.',
-    'Note your batch number.',
-    'Check status; open the receipt once Paid.',
-  ],
-  Graders: [
-    'Open Batches to test.',
-    'Select a batch, enter measured litres.',
-    'Choose Pass or Reject and save.',
-  ],
-  Admin: [
-    'Open Approvals, review tested batches.',
-    'Approve payment; the farmer is emailed.',
-    'Use Reports and Audit log from the menu.',
-  ],
+  farmers: ['farmer1', 'farmer2', 'farmer3', 'farmer4'],
+  graders: ['grader1', 'grader2', 'grader3'],
+  admin: ['admin1', 'admin2', 'admin3'],
 };
 
 function HelpContent() {
+  const { t } = useTranslation();
   return Object.entries(steps).map(([who, list]) => (
     <div key={who} className="mb-3">
-      <h3 className="h6 mb-1">{who}</h3>
+      <h3 className="h6 mb-1">{t(`help.${who}`)}</h3>
       <ol className="mb-0 ps-3">
-        {list.map((s) => <li key={s}>{s}</li>)}
+        {list.map((k) => <li key={k}>{t(`help.${k}`)}</li>)}
       </ol>
     </div>
   ));
 }
 
 export default function Help() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   if (!user) {
     return (
-      <AuthCard title="Help">
+      <AuthCard title={t('help.title')}>
         <HelpContent />
-        <Link to="/login" className="small">Back to login</Link>
+        <Link to="/login" className="small">{t('help.backToLogin')}</Link>
       </AuthCard>
     );
   }
 
   return (
-    <Layout title="Help" subtitle="How to use MaziwaTrack for each role">
+    <Layout title={t('help.title')} subtitle={t('help.subtitle')}>
       <div style={{ maxWidth: 640 }}>
         <div className="card"><div className="card-body"><HelpContent /></div></div>
-        <Link to={homeFor(user.role)} className="d-inline-block mt-3 small">Back to my dashboard</Link>
+        <Link to={homeFor(user.role)} className="d-inline-block mt-3 small">{t('help.backToDashboard')}</Link>
       </div>
     </Layout>
   );
