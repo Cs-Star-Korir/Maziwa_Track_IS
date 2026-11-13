@@ -1,0 +1,638 @@
+openapi: 3.0.0
+info:
+  title: MaziwaTrack API
+  version: 1.0.0
+  description: |
+    REST API for MaziwaTrack — a milk collection and payment management system
+    for dairy cooperatives in Kenya.
+
+    ## Authentication
+    This API uses **cookie-based authentication**. Call `POST /api/auth/login`
+    first; the server sets an HttpOnly cookie (`mt_token`) that is sent
+    automatically on every subsequent request. No Authorization header is needed.
+
+    ## Roles
+    | Role | Permissions |
+    |---|---|
+    | `farmer` | Record deliveries, view own batches |
+    | `grader` | View incoming batches, submit quality test results |
+    | `admin` | Approve payments, generate reports, view audit logs |
+
+    ## Batch Lifecycle
+    `recorded` → `passed` / `rejected` → `paid`
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: mt_token
+      description: HttpOnly session cookie set by POST /api/auth/login. Valid for 8 hours.
+
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        full_name:
+          type: string
+          example: Jane Wanjiku
+        email:
+          type: string
+          example: jane@example.com
+        role:
+          type: string
+          enum: [farmer, grader, admin]
+          example: farmer
+
+    Payment:
+      type: object
+      properties:
+        payment_reference:
+          type: string
+          example: PAY-20261113-0007
+        price_per_litre:
+          type: number
+          example: 50.00
+        amount:
+          type: number
+          example: 590.00
+          description: measured_litres × price_per_litre (calculated, not stored)
+        email_sent:
+          type: boolean
+          example: true
+        approved_at:
+          type: string
+          format: date-time
+
+    Batch:
+      type: object
+      properties:
+        batch_id:
+          type: integer
+          example: 7
+        batch_number:
+          type: string
+          example: MT-20261113-0007
+        farmer_id:
+          type: integer
+          example: 1
+        farmer_name:
+          type: string
+          example: Jane Wanjiku
+        declared_litres:
+          type: number
+          example: 12.5
+        status:
+          type: string
+          enum: [recorded, passed, rejected, paid]
+          example: recorded
+        delivered_at:
+          type: string
+          format: date-time
+        grader_id:
+          type: integer
+          nullable: true
+          example: null
+        measured_litres:
+          type: number
+          nullable: true
+          example: null
+        quality_result:
+          type: string
+          nullable: true
+          enum: [pass, reject]
+          example: null
+        grader_notes:
+          type: string
+          nullable: true
+          example: null
+        tested_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        payment:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Payment'
+
+    AuditLog:
+      type: object
+      properties:
+        log_id:
+          type: integer
+          example: 42
+        user_id:
+          type: integer
+          example: 3
+        user_name:
+          type: string
+          example: Admin User
+        action:
+          type: string
+          example: APPROVE_PAYMENT
+        table_name:
+          type: string
+          nullable: true
+          example: batches
+        record_id:
+          type: integer
+          nullable: true
+          example: 7
+        batch_number:
+          type: string
+          nullable: true
+          example: MT-20261113-0007
+        old_value:
+          type: object
+          nullable: true
+        new_value:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Something went wrong. Please try again.
+
+paths:
+
+  # ── Health ────────────────────────────────────────────────────────────────
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Confirms the server and database are up. No authentication required.
+      responses:
+        '200':
+          description: Server and database are up
+          content:
+            application/json:
+              example:
+                status: ok
+                database: up
+                time: '2026-11-13T10:00:00.000Z'
+        '503':
+          description: Database is unreachable
+          content:
+            application/json:
+              example:
+                status: error
+                database: down
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new farmer account
+      description: >
+        Farmers register themselves. Grader and admin accounts are created by
+        the system administrator only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [full_name, phone, email, password]
+              properties:
+                full_name:
+                  type: string
+                  example: Jane Wanjiku
+                phone:
+                  type: string
+                  example: '0712345678'
+                  description: Kenyan format — starts with 07 or 01, 10 digits
+                email:
+                  type: string
+                  example: jane@example.com
+                password:
+                  type: string
+                  example: secret123
+                  description: Minimum 8 characters
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              example:
+                message: Enter your full name.
+        '409':
+          description: Email or phone already registered
+          content:
+            application/json:
+              example:
+                message: An account with this email already exists.
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in
+      description: >
+        Sets an HttpOnly cookie (`mt_token`) valid for 8 hours.
+        Rate-limited to 10 failed attempts per 15 minutes per IP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: jane@example.com
+                password:
+                  type: string
+                  example: secret123
+      responses:
+        '200':
+          description: Logged in — mt_token cookie is set
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Wrong credentials
+          content:
+            application/json:
+              example:
+                message: Incorrect email or password. Please try again.
+        '429':
+          description: Too many failed attempts
+          content:
+            application/json:
+              example:
+                message: Too many login attempts. Try again in 15 minutes.
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      description: Returns the logged-in user from the session cookie. Called on every page load.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Not logged in or session expired
+          content:
+            application/json:
+              example:
+                message: Please log in.
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out
+      description: Clears the mt_token cookie. Safe to call even if already logged out.
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              example:
+                message: Logged out.
+
+  # ── Config ────────────────────────────────────────────────────────────────
+  /api/config:
+    get:
+      tags: [Config]
+      summary: Get system config
+      description: Returns the current milk price and cooperative name. Any authenticated user.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current config
+          content:
+            application/json:
+              example:
+                price_per_litre: 50
+                cooperative_name: MaziwaTrack Dairy Cooperative
+        '401':
+          description: Not logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ── Batches ───────────────────────────────────────────────────────────────
+  /api/batches:
+    post:
+      tags: [Batches]
+      summary: Record a delivery (farmer)
+      description: >
+        Farmer records a new milk delivery. The system auto-generates a unique
+        batch number in the format `MT-YYYYMMDD-NNNN`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [declared_litres]
+              properties:
+                declared_litres:
+                  type: number
+                  example: 12.5
+                  description: Must be greater than 0
+      responses:
+        '201':
+          description: Delivery recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+        '400':
+          description: Invalid litres value
+          content:
+            application/json:
+              example:
+                message: Litres must be a number greater than 0
+        '403':
+          description: Role not allowed
+          content:
+            application/json:
+              example:
+                message: You are not allowed to do this.
+
+    get:
+      tags: [Batches]
+      summary: List batches (grader / admin)
+      description: >
+        Graders always see only `recorded` batches (oldest first).
+        Admins can filter freely using query parameters.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [recorded, passed, rejected, paid]
+          description: Filter by batch status (admin only)
+        - in: query
+          name: from
+          schema:
+            type: string
+            example: '2026-11-01'
+          description: Start date YYYY-MM-DD (admin only)
+        - in: query
+          name: to
+          schema:
+            type: string
+            example: '2026-11-13'
+          description: End date YYYY-MM-DD (admin only)
+        - in: query
+          name: farmer
+          schema:
+            type: string
+            example: Jane
+          description: Partial farmer name search, case-insensitive (admin only)
+      responses:
+        '200':
+          description: Array of batches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Batch'
+        '400':
+          description: Invalid filter value
+          content:
+            application/json:
+              example:
+                message: '"from" must be a date like 2026-10-19.'
+
+  /api/batches/mine:
+    get:
+      tags: [Batches]
+      summary: Get my batches (farmer)
+      description: Returns all deliveries for the logged-in farmer, newest first.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Farmer's batches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Batch'
+
+  /api/batches/{batch_number}/verify:
+    patch:
+      tags: [Batches]
+      summary: Verify a batch (grader)
+      description: >
+        Grader submits measured litres and quality result.
+        `quality_result` must be exactly `pass` or `reject` (lowercase).
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: batch_number
+          required: true
+          schema:
+            type: string
+            example: MT-20261113-0007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [measured_litres, quality_result]
+              properties:
+                measured_litres:
+                  type: number
+                  example: 11.8
+                quality_result:
+                  type: string
+                  enum: [pass, reject]
+                  example: pass
+                grader_notes:
+                  type: string
+                  example: Slight foam but within acceptable range
+                  description: Optional, max 1000 characters
+      responses:
+        '200':
+          description: Batch updated with grader results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+        '404':
+          description: Batch not found
+          content:
+            application/json:
+              example:
+                message: Batch not found.
+        '409':
+          description: Batch already tested
+          content:
+            application/json:
+              example:
+                message: This batch has already been tested.
+
+  # ── Payments ──────────────────────────────────────────────────────────────
+  /api/payments:
+    post:
+      tags: [Payments]
+      summary: Approve payment (admin)
+      description: >
+        Approves payment for a passed batch. Auto-generates a payment reference
+        (`PAY-YYYYMMDD-NNNN`) and emails the farmer if SMTP is configured.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [batch_number]
+              properties:
+                batch_number:
+                  type: string
+                  example: MT-20261113-0007
+      responses:
+        '201':
+          description: Payment approved — returns updated batch with payment nested inside
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+        '404':
+          description: Batch not found
+          content:
+            application/json:
+              example:
+                message: Batch not found.
+        '409':
+          description: Batch has not passed testing
+          content:
+            application/json:
+              example:
+                message: Only batches that passed testing can be paid.
+
+  # ── Reports ───────────────────────────────────────────────────────────────
+  /api/reports/log:
+    post:
+      tags: [Reports]
+      summary: Log a report generation (admin)
+      description: >
+        Records in the audit log that an admin generated a report.
+        The actual report data comes from GET /api/batches with date filters.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  example: Monthly Payments Report - November 2026
+                  description: Max 60 characters
+      responses:
+        '201':
+          description: Report logged
+          content:
+            application/json:
+              example:
+                message: Report logged.
+        '400':
+          description: Missing report type
+          content:
+            application/json:
+              example:
+                message: Report type is required.
+
+  # ── Audit Logs ────────────────────────────────────────────────────────────
+  /api/audit-logs:
+    get:
+      tags: [Audit Logs]
+      summary: Get audit logs (admin)
+      description: >
+        Returns up to 1000 audit log entries, newest first.
+        This log is read-only by design — entries are never edited or deleted.
+
+        **Available action values:** LOGIN, LOGOUT, REGISTER, RECORD_DELIVERY,
+        TEST_BATCH, APPROVE_PAYMENT, GENERATE_REPORT
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: user
+          schema:
+            type: string
+            example: Jane Wanjiku
+          description: Filter by exact full name
+        - in: query
+          name: action
+          schema:
+            type: string
+            example: APPROVE_PAYMENT
+          description: Filter by action type
+        - in: query
+          name: date
+          schema:
+            type: string
+            example: '2026-11-13'
+          description: Filter by date YYYY-MM-DD
+      responses:
+        '200':
+          description: Array of audit log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              example:
+                message: '"date" must be like 2026-10-19.'
